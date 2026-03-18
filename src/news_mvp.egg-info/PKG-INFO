@@ -1,0 +1,120 @@
+Metadata-Version: 2.4
+Name: news-mvp
+Version: 0.1.0
+Summary: Financial intelligence aggregation dashboard MVP built with Python and Streamlit.
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: feedparser>=6.0.11
+Requires-Dist: python-dotenv>=1.0.1
+Requires-Dist: requests>=2.32.3
+Requires-Dist: streamlit>=1.44.0
+
+# Financial Intelligence Aggregation Dashboard MVP
+
+This repository contains a Python + Streamlit MVP for a financial intelligence feedboard. The goal is not to build a generic news site, but to create a research-oriented information flow for macro tracking, commodities research, investment advisory, and market monitoring.
+
+## Current Scope
+
+Stage 2 delivers a working MVP slice:
+
+- Python project scaffold
+- SQLite-ready core data model
+- Live collectors for an initial set of sources
+- Minimal processing pipeline for deduplication, tagging, summary generation, event grouping, and scoring
+- Database initialization and pipeline scripts
+- Streamlit feedboard with filters and ranking
+- Environment and run instructions
+
+The implementation is still intentionally lightweight, but it now pulls real articles into SQLite and renders them in Streamlit.
+
+## MVP Pipeline Target
+
+The intended MVP pipeline is:
+
+1. Collect articles from stable public sources
+2. Clean and normalize text
+3. Deduplicate by URL and content fingerprint
+4. Apply tags
+5. Generate summaries
+6. Cluster articles into events
+7. Score importance
+8. Display the research feed in Streamlit
+
+## Project Structure
+
+```text
+news/
+├─ data/
+├─ scripts/
+│  ├─ init_db.py
+│  └─ run_pipeline.py
+├─ src/
+│  └─ news_mvp/
+│     ├─ collectors/
+│     ├─ dashboard/
+│     ├─ pipeline/
+│     ├─ config.py
+│     ├─ db.py
+│     └─ schema.py
+├─ .env.example
+├─ AGENTS.md
+├─ PLANS.md
+├─ pyproject.toml
+└─ streamlit_app.py
+```
+
+## Setup
+
+1. Create and activate a virtual environment.
+2. Install the project in editable mode:
+
+```bash
+python -m pip install -e .
+```
+
+3. Create an environment file:
+
+```bash
+copy .env.example .env
+```
+
+4. Initialize the database:
+
+```bash
+python scripts/init_db.py
+```
+
+## Run
+
+Initialize the database, fetch the latest articles, then start Streamlit:
+
+```bash
+python scripts/run_pipeline.py
+streamlit run streamlit_app.py
+```
+
+The Streamlit app also includes a refresh button that runs the pipeline from the UI.
+
+## Initialization Notes
+
+- Default database: `data/news_mvp.db`
+- The app auto-creates the `data/` directory if it does not exist.
+- SQLite is used for MVP speed, but configuration and DB access are centralized to keep a future PostgreSQL migration manageable.
+
+## What Is Implemented Now
+
+- Federal Reserve official RSS ingestion
+- Reuters and BLS ingestion through Google News RSS search feeds, filtered to the source domain
+- Rule-based text cleaning, URL/content fingerprint deduplication, tagging, summary generation, event grouping, and importance scoring
+- Streamlit information flow with time, topic, and region filters
+
+## What Is Not Implemented Yet
+
+- Direct Reuters site parsing
+- Direct BLS site feed parsing in this environment
+- Advanced event clustering or sentiment analysis
+- Production scheduling or background jobs
+
+## Next Step
+
+The next step is to harden source adapters, improve event clustering, and deepen the dashboard for research workflows.
