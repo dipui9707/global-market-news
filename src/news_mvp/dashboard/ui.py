@@ -31,6 +31,8 @@ from news_mvp.pipeline.translator import backfill_recent_translations, translati
 
 
 AUTO_UPDATE_INTERVAL_OPTIONS = [60, 120, 300, 600, 900, 1800]
+INITIAL_FEED_PAGE_SIZE = 100
+FEED_PAGE_STEP = 100
 BJ_TZ = timezone(timedelta(hours=8))
 
 
@@ -85,6 +87,27 @@ def _format_auto_update_note() -> str:
         last_run = datetime.fromtimestamp(float(last_run_ts), UTC).astimezone(BJ_TZ).strftime("%H:%M:%S")
         return f"{status} · 每 {interval_seconds} 秒 · 上次 {last_run} 北京时间"
     return f"{status} · 每 {interval_seconds} 秒"
+
+
+def _reset_feed_pagination(settings: Settings) -> None:
+    st.session_state["feed_visible_count"] = max(settings.default_page_size, INITIAL_FEED_PAGE_SIZE)
+
+
+def _sync_feed_pagination(
+    settings: Settings,
+    *,
+    hours: int,
+    region: str,
+    topic: str,
+    search: str,
+    sort_by: str,
+    selected_source: str,
+) -> None:
+    current_signature = (hours, region, topic, search.strip(), sort_by, selected_source)
+    previous_signature = st.session_state.get("feed_filter_signature")
+    if previous_signature != current_signature:
+        st.session_state["feed_filter_signature"] = current_signature
+        _reset_feed_pagination(settings)
 
 
 def render_dashboard(settings: Settings) -> None:
@@ -190,6 +213,20 @@ def render_dashboard(settings: Settings) -> None:
     sort_by = locals().get("sort_by", "time")
     selected_source = locals().get("selected_source", "全部")
 
+    _sync_feed_pagination(
+        settings,
+        hours=hours,
+        region=region,
+        topic=topic,
+        search=search,
+        sort_by=sort_by,
+        selected_source=selected_source,
+    )
+    visible_count = min(
+        int(st.session_state.get("feed_visible_count", max(settings.default_page_size, INITIAL_FEED_PAGE_SIZE))),
+        settings.article_retention_count,
+    )
+
     flash_items = load_flash_items(settings, hours=hours, limit=5)
     source_status_rows = load_source_status(settings, hours=hours)
     source_status_map = {row.source: row for row in source_status_rows}
@@ -210,7 +247,7 @@ def render_dashboard(settings: Settings) -> None:
         source=None if selected_source == "全部" else selected_source,
         search=search or None,
         sort_by=sort_by,
-        limit=settings.default_page_size,
+        limit=visible_count,
     )
 
     main_col, side_col = st.columns([4.8, 1.45], gap="large")
@@ -219,6 +256,15 @@ def render_dashboard(settings: Settings) -> None:
         render_flash_panel(flash_items)
         for article in articles:
             render_feed_item(article)
+        if articles:
+            st.caption(f"当前已显示 {len(articles)} 条，最多可逐步查看至 {settings.article_retention_count} 条保留内容。")
+            if len(articles) >= visible_count and visible_count < settings.article_retention_count:
+                if st.button("加载更多", key="load_more_articles", use_container_width=True):
+                    st.session_state["feed_visible_count"] = min(
+                        visible_count + FEED_PAGE_STEP,
+                        settings.article_retention_count,
+                    )
+                    st.rerun()
         if not articles:
             st.info("当前筛选条件下暂无结果，请调整来源、主题、区域或时间窗口。")
 
