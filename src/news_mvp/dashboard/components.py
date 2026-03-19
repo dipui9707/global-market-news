@@ -59,8 +59,7 @@ def render_feed_item(article: ArticleCard) -> None:
     clean_title = sanitize_text(article.title)
     clean_title_zh = sanitize_text(article.title_zh)
     clean_summary = sanitize_text(article.summary)
-    clean_summary_zh = sanitize_text(article.summary_zh)
-    display_summary = clean_summary_zh if clean_summary_zh and clean_summary_zh != clean_summary else clean_summary or "No summary available."
+    display_summary = clean_summary or "No summary available."
     display_title = clean_title_zh if clean_title_zh and clean_title_zh != clean_title else clean_title
     badges = [f"<span class='badge source'>{escape(article.source)}</span>"]
     for tag in article.topic_tags[:3]:

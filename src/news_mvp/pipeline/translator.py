@@ -6,7 +6,7 @@ import re
 import requests
 
 from news_mvp.config import Settings
-from news_mvp.db import connection_scope, update_article_translations, update_event_translation
+from news_mvp.db import connection_scope, update_article_translations
 
 
 HIDDEN_SOURCES = ("联合早报",)
@@ -90,16 +90,9 @@ def backfill_recent_translations(settings: Settings, hours: int, limit: int) -> 
         SELECT
             id,
             title,
-            summary,
             language,
             title_zh,
-            summary_zh,
-            e.id AS event_id,
-            e.event_title,
-            e.event_title_zh
         FROM articles
-        LEFT JOIN article_event_map aem ON articles.id = aem.article_id
-        LEFT JOIN events e ON aem.event_id = e.id
         WHERE COALESCE(published_at, fetched_at) >= datetime('now', ?)
           AND source NOT IN ({", ".join("?" for _ in HIDDEN_SOURCES)})
         ORDER BY importance_score DESC, COALESCE(published_at, fetched_at) DESC
@@ -116,8 +109,6 @@ def backfill_recent_translations(settings: Settings, hours: int, limit: int) -> 
                 break
 
             title = row["title"]
-            summary = row["summary"]
-            event_title = row["event_title"]
 
             title_zh = _translate_with_cache(
                 translation_cache,
@@ -125,30 +116,14 @@ def backfill_recent_translations(settings: Settings, hours: int, limit: int) -> 
                 settings,
                 should_translate_text(text=title, language=row["language"], existing_translation=row["title_zh"]),
             )
-            summary_zh = _translate_with_cache(
-                translation_cache,
-                summary,
-                settings,
-                should_translate_text(text=summary, language=row["language"], existing_translation=row["summary_zh"]),
-            )
-            event_title_zh = _translate_with_cache(
-                translation_cache,
-                event_title,
-                settings,
-                should_translate_text(text=event_title, language=row["language"], existing_translation=row["event_title_zh"]),
-            )
 
-            if title_zh or summary_zh:
+            if title_zh:
                 update_article_translations(
                     connection,
                     row["id"],
                     title_zh=title_zh,
-                    summary_zh=summary_zh,
                 )
-            if event_title_zh and row["event_id"]:
-                update_event_translation(connection, row["event_id"], event_title_zh)
-
-            translated_count += sum(1 for value in (title_zh, summary_zh, event_title_zh) if value)
+                translated_count += 1
 
     return translated_count
 

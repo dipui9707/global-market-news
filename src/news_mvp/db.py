@@ -40,6 +40,7 @@ def initialize_database(settings: Settings) -> None:
             cursor.execute(statement)
         _ensure_article_schema(connection)
         _ensure_event_schema(connection)
+        _normalize_article_event_map(connection)
         for statement in SCHEMA_STATEMENTS[5:]:
             cursor.execute(statement)
         cursor.executemany(
@@ -290,6 +291,14 @@ def upsert_event(connection: sqlite3.Connection, event: dict[str, Any]) -> str:
 def link_article_event(connection: sqlite3.Connection, article_id: str, event_id: str) -> None:
     connection.execute(
         """
+        DELETE FROM article_event_map
+        WHERE article_id = ?
+          AND event_id != ?
+        """,
+        (article_id, event_id),
+    )
+    connection.execute(
+        """
         INSERT OR IGNORE INTO article_event_map (article_id, event_id)
         VALUES (?, ?)
         """,
@@ -327,6 +336,49 @@ def _ensure_event_schema(connection: sqlite3.Connection) -> None:
     }
     if "event_title_zh" not in existing_columns:
         connection.execute("ALTER TABLE events ADD COLUMN event_title_zh TEXT")
+
+
+def _normalize_article_event_map(connection: sqlite3.Connection) -> None:
+    stale_rows = connection.execute(
+        """
+        SELECT article_id, event_id
+        FROM (
+            SELECT
+                aem.article_id,
+                aem.event_id,
+                ROW_NUMBER() OVER (
+                    PARTITION BY aem.article_id
+                    ORDER BY
+                        COALESCE(e.importance_score, 0) DESC,
+                        COALESCE(e.last_seen_at, '') DESC,
+                        COALESCE(e.first_seen_at, '') DESC,
+                        aem.event_id DESC
+                ) AS rn
+            FROM article_event_map aem
+            LEFT JOIN events e ON aem.event_id = e.id
+        )
+        WHERE rn > 1
+        """
+    ).fetchall()
+    for row in stale_rows:
+        connection.execute(
+            """
+            DELETE FROM article_event_map
+            WHERE article_id = ?
+              AND event_id = ?
+            """,
+            (row["article_id"], row["event_id"]),
+        )
+
+    connection.execute(
+        """
+        DELETE FROM events
+        WHERE id NOT IN (
+            SELECT DISTINCT event_id
+            FROM article_event_map
+        )
+        """
+    )
 
 
 def _coerce_iso_datetime(value: str | None) -> datetime | None:

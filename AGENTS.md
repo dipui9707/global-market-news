@@ -41,6 +41,7 @@ This repository is developed as a staged MVP for a financial intelligence aggreg
 - Do not optimize for storing or presenting large copyrighted article bodies.
 - Rule-based implementations are acceptable in MVP as long as they are explicit and replaceable.
 - Duplicate-story collapsing in the main feed is acceptable as long as raw source rows are still retained in SQLite.
+- If translation is enabled, default to title-only translation unless the product direction explicitly broadens that scope.
 
 ## Environment Rules
 

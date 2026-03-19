@@ -148,15 +148,12 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
                 duplicate_group_id = canonical_article_id
 
             existing_title_zh = None
-            existing_summary_zh = None
             for translation_source in (current_article, duplicate_match):
                 if translation_source is None:
                     continue
                 if existing_title_zh is None and translation_source["title_zh"]:
                     existing_title_zh = translation_source["title_zh"]
-                if existing_summary_zh is None and translation_source["summary_zh"]:
-                    existing_summary_zh = translation_source["summary_zh"]
-                if existing_title_zh and existing_summary_zh:
+                if existing_title_zh:
                     break
 
             title_zh = existing_title_zh
@@ -180,54 +177,6 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
                 if title_zh:
                     translated_count += 1
 
-            summary_zh = existing_summary_zh
-            if summary_zh is None and summary in translation_cache:
-                summary_zh = translation_cache[summary]
-            elif (
-                summary_zh is None
-                and pending_translation_budget > 0
-                and should_translate_title(
-                    title=summary,
-                    language=payload.language,
-                    existing_translation=existing_summary_zh,
-                )
-            ):
-                try:
-                    summary_zh = translate_title(summary, settings)
-                except requests.RequestException:
-                    summary_zh = None
-                translation_cache[summary] = summary_zh
-                pending_translation_budget -= 1
-                if summary_zh:
-                    translated_count += 1
-
-            existing_event_title_zh = existing_event["event_title_zh"] if existing_event is not None else None
-            event_title_zh = existing_event_title_zh
-            if (
-                event_assignment.event_title
-                and event_title_zh is None
-                and event_assignment.event_title in translation_cache
-            ):
-                event_title_zh = translation_cache[event_assignment.event_title]
-            elif (
-                event_assignment.event_title
-                and event_title_zh is None
-                and pending_translation_budget > 0
-                and should_translate_title(
-                    title=event_assignment.event_title,
-                    language=payload.language,
-                    existing_translation=existing_event_title_zh,
-                )
-            ):
-                try:
-                    event_title_zh = translate_title(event_assignment.event_title, settings)
-                except requests.RequestException:
-                    event_title_zh = None
-                translation_cache[event_assignment.event_title] = event_title_zh
-                pending_translation_budget -= 1
-                if event_title_zh:
-                    translated_count += 1
-
             importance = score_article(
                 source=payload.source,
                 event_type=event_type,
@@ -242,7 +191,7 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
                 "title": payload.title,
                 "title_zh": title_zh,
                 "summary": summary,
-                "summary_zh": summary_zh,
+                "summary_zh": None,
                 "url": normalized_url,
                 "published_at": payload.published_at,
                 "fetched_at": payload.fetched_at,
@@ -274,7 +223,7 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
                 event = {
                     "id": str(uuid4()),
                     "event_title": event_assignment.event_title or payload.title,
-                    "event_title_zh": event_title_zh,
+                    "event_title_zh": None,
                     "event_summary": summary,
                     "first_seen_at": payload.published_at or now_iso,
                     "last_seen_at": payload.published_at or now_iso,

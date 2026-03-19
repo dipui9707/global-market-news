@@ -28,7 +28,7 @@ The repository now includes a runnable MVP with:
   - rule-based summary generation
   - minimal event grouping
   - rule-based importance scoring
-- Optional Qwen-MT translation for titles, summaries, and event text
+- Optional Qwen-MT translation for titles only
 - A Streamlit dashboard with a light paper-toned research board style, duplicate-story collapsing, and mobile-friendly collapsed controls
 
 The project currently runs on the default local Python 3.14 environment.
@@ -42,7 +42,7 @@ The current pipeline is:
 3. Deduplicate by URL, content fingerprint, and lightweight story grouping
 4. Infer tags from rule-based keyword matching
 5. Generate a short summary
-6. Optionally translate title, summary, and event text through Qwen-MT
+6. Optionally translate titles through Qwen-MT
 7. Assign a minimal event grouping key
 8. Compute rule-based importance score
 9. Persist results to SQLite
@@ -289,7 +289,8 @@ The current Streamlit board supports:
 - search
 - sort by time or importance
 - auto update toggle and interval control
-- optional Chinese translated titles and summaries for foreign-language items
+- optional Chinese translated titles for foreign-language items
+- summaries remain in the original source language
 - important flash panel
 - main feed timeline
 - default duplicate-story collapsing in the main feed
@@ -304,6 +305,7 @@ The current Streamlit board supports:
 - Schema is organized so a future PostgreSQL migration is manageable
 - The pipeline can automatically prune the article table to the most recent retained records
 - Duplicate stories are still stored in SQLite, but the main feed now collapses duplicate rows by default
+- Each article is normalized to a single primary event mapping to avoid duplicate feed rows from repeated event joins
 - The dashboard displays titles, summaries, tags, scores, and links rather than large raw article bodies
 
 ## What Is Implemented
@@ -311,7 +313,7 @@ The current Streamlit board supports:
 - Federal Reserve official feed ingestion
 - Reuters and BLS source-limited feed ingestion through Google News RSS search
 - Bloomberg, CNBC, CNN, WSJ, FT, Yahoo Finance, Axios, SCMP, and MktNews integrations
-- Optional Alibaba Cloud Qwen-MT translation for titles, summaries, and event text
+- Optional Alibaba Cloud Qwen-MT title translation
 - Rule-based enrichment and lightweight duplicate-story collapsing
 - Mobile-friendly collapsed controls and a refined light research-board UI
 - ECS deployment workflow with `systemd`, `nginx`, recurring pipeline runs, and SQLite backup
@@ -331,6 +333,7 @@ The current Streamlit board supports:
 - Reuters and BLS currently depend on Google News RSS as a transport layer
 - Some third-party publisher RSS feeds may change structure or rate-limit intermittently
 - Automatic translation is opt-in and depends on a configured DashScope API key
+- The current translation mode only applies to titles; summaries remain in the source language
 - Historical article retention defaults to the most recent 5000 records
 - Duplicate detection is heuristic and story grouping remains lightweight rather than entity-aware
 - Event grouping is heuristic, not entity-aware

@@ -138,15 +138,37 @@ def load_article_feed(
             a.importance_score,
             a.is_duplicate,
             a.dedup_reason,
-            e.event_title,
-            e.event_title_zh,
-            GROUP_CONCAT(CASE WHEN t.tag_type = 'topic' THEN t.tag_name END) AS topic_tags,
-            GROUP_CONCAT(CASE WHEN t.tag_type = 'asset' THEN t.tag_name END) AS asset_tags
+            (
+                SELECT e.event_title
+                FROM article_event_map aem
+                JOIN events e ON aem.event_id = e.id
+                WHERE aem.article_id = a.id
+                ORDER BY e.importance_score DESC, e.last_seen_at DESC, e.first_seen_at DESC, e.id DESC
+                LIMIT 1
+            ) AS event_title,
+            (
+                SELECT e.event_title_zh
+                FROM article_event_map aem
+                JOIN events e ON aem.event_id = e.id
+                WHERE aem.article_id = a.id
+                ORDER BY e.importance_score DESC, e.last_seen_at DESC, e.first_seen_at DESC, e.id DESC
+                LIMIT 1
+            ) AS event_title_zh,
+            (
+                SELECT GROUP_CONCAT(DISTINCT t.tag_name)
+                FROM article_tags at
+                JOIN tags t ON at.tag_id = t.id
+                WHERE at.article_id = a.id
+                  AND t.tag_type = 'topic'
+            ) AS topic_tags,
+            (
+                SELECT GROUP_CONCAT(DISTINCT t.tag_name)
+                FROM article_tags at
+                JOIN tags t ON at.tag_id = t.id
+                WHERE at.article_id = a.id
+                  AND t.tag_type = 'asset'
+            ) AS asset_tags
         FROM articles a
-        LEFT JOIN article_event_map aem ON a.id = aem.article_id
-        LEFT JOIN events e ON aem.event_id = e.id
-        LEFT JOIN article_tags at ON a.id = at.article_id
-        LEFT JOIN tags t ON at.tag_id = t.id
         WHERE COALESCE(a.published_at, a.fetched_at) >= ?
     """
     query = _append_hidden_source_filter(query, "a")
@@ -175,11 +197,6 @@ def load_article_feed(
         query += " AND (LOWER(a.title) LIKE ? OR LOWER(COALESCE(a.title_zh, '')) LIKE ? OR LOWER(COALESCE(a.summary, '')) LIKE ? OR LOWER(COALESCE(a.summary_zh, '')) LIKE ?)"
         keyword = f"%{search.lower()}%"
         params.extend([keyword, keyword, keyword, keyword])
-    query += """
-        GROUP BY
-            a.id, a.title, a.source, a.published_at, a.fetched_at, a.region, a.event_type,
-            a.summary, a.summary_zh, a.url, a.importance_score, a.is_duplicate, a.dedup_reason, e.event_title, e.event_title_zh
-    """
     if sort_by == "time":
         query += " ORDER BY COALESCE(a.published_at, a.fetched_at) DESC, a.importance_score DESC"
     else:

@@ -223,8 +223,8 @@ def get_dashboard_css() -> str:
     .feed-card {
         position: relative;
         border-top: 1px solid color-mix(in srgb, var(--gold) 10%, var(--line));
-        padding: 0.72rem 0.15rem 0.76rem 0.35rem;
-        margin-top: 0.08rem;
+        padding: 0.52rem 0.08rem 0.56rem 0.24rem;
+        margin-top: 0.02rem;
         transition: background 120ms ease, transform 120ms ease, border-color 120ms ease;
         border-radius: 12px;
         background: color-mix(in srgb, var(--panel) 42%, transparent);
@@ -241,8 +241,8 @@ def get_dashboard_css() -> str:
         content: "";
         position: absolute;
         left: 0;
-        top: 0.9rem;
-        bottom: 0.9rem;
+        top: 0.68rem;
+        bottom: 0.68rem;
         width: 2px;
         border-radius: 999px;
         background: transparent;
@@ -266,32 +266,32 @@ def get_dashboard_css() -> str:
 
     .feed-layout {
         display: grid;
-        grid-template-columns: 68px 1fr;
-        gap: 0.95rem;
+        grid-template-columns: 56px 1fr;
+        gap: 0.78rem;
         align-items: start;
     }
 
     .time-col {
         color: var(--muted);
-        font-size: 0.76rem;
+        font-size: 0.72rem;
         text-align: right;
-        padding-top: 0.15rem;
+        padding-top: 0.08rem;
         border-right: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
-        padding-right: 0.9rem;
+        padding-right: 0.72rem;
     }
 
     .time-main {
         color: color-mix(in srgb, var(--text) 78%, var(--muted));
-        font-size: 1rem;
+        font-size: 0.92rem;
     }
 
     .feed-title {
         color: var(--text);
         font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-        font-size: 1.28rem;
-        line-height: 1.28;
+        font-size: 1.14rem;
+        line-height: 1.24;
         font-weight: 700;
-        margin: 0.05rem 0 0.26rem;
+        margin: 0.02rem 0 0.16rem;
         letter-spacing: 0.005em;
     }
 
@@ -306,16 +306,16 @@ def get_dashboard_css() -> str:
 
     .meta-line {
         color: var(--muted);
-        font-size: 0.82rem;
-        margin-bottom: 0.42rem;
+        font-size: 0.78rem;
+        margin-bottom: 0.28rem;
         letter-spacing: 0.01em;
     }
 
     .badge-row {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.35rem;
-        margin-bottom: 0.58rem;
+        gap: 0.28rem;
+        margin-bottom: 0.36rem;
     }
 
     .badge {
@@ -325,8 +325,8 @@ def get_dashboard_css() -> str:
         background: color-mix(in srgb, var(--gold-soft) 68%, white 32%);
         color: color-mix(in srgb, var(--gold) 85%, var(--text));
         border-radius: 999px;
-        font-size: 0.72rem;
-        padding: 0.14rem 0.48rem;
+        font-size: 0.68rem;
+        padding: 0.1rem 0.38rem;
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
     }
 
@@ -344,9 +344,9 @@ def get_dashboard_css() -> str:
 
     .summary-text {
         color: color-mix(in srgb, var(--text) 84%, var(--muted));
-        font-size: 0.85rem;
-        line-height: 1.48;
-        margin-bottom: 0.4rem;
+        font-size: 0.8rem;
+        line-height: 1.4;
+        margin-bottom: 0.28rem;
     }
 
     .feed-footer {
@@ -355,14 +355,14 @@ def get_dashboard_css() -> str:
         align-items: center;
         gap: 0.5rem;
         color: var(--muted);
-        font-size: 0.8rem;
+        font-size: 0.76rem;
     }
 
     .score-chip {
         color: color-mix(in srgb, var(--gold) 88%, var(--text));
-        font-size: 0.8rem;
+        font-size: 0.74rem;
         border-radius: 999px;
-        padding: 0.12rem 0.42rem;
+        padding: 0.08rem 0.32rem;
         background: color-mix(in srgb, var(--gold-soft) 46%, white 54%);
         border: 1px solid color-mix(in srgb, var(--gold) 18%, transparent);
     }
@@ -672,28 +672,28 @@ def get_dashboard_css() -> str:
 
     @media (max-width: 640px) {
         .feed-layout {
-            grid-template-columns: 52px 1fr;
-            gap: 0.7rem;
+            grid-template-columns: 46px 1fr;
+            gap: 0.58rem;
         }
 
         .time-col {
-            font-size: 0.72rem;
-            padding-right: 0.65rem;
+            font-size: 0.68rem;
+            padding-right: 0.52rem;
         }
 
         .time-main {
-            font-size: 0.9rem;
+            font-size: 0.82rem;
         }
 
         .feed-title {
-            font-size: 1.14rem;
-            line-height: 1.12;
+            font-size: 1.02rem;
+            line-height: 1.16;
         }
 
         .meta-line,
         .summary-text,
         .feed-footer {
-            font-size: 0.78rem;
+            font-size: 0.74rem;
         }
 
         .flash-list li {
