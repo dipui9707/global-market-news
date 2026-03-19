@@ -6,6 +6,7 @@ import time
 import streamlit as st
 
 from news_mvp.config import Settings
+from news_mvp.db import initialize_database
 from news_mvp.dashboard.components import (
     render_feed_item,
     render_flash_panel,
@@ -87,6 +88,7 @@ def _format_auto_update_note() -> str:
 
 
 def render_dashboard(settings: Settings) -> None:
+    initialize_database(settings)
     _init_auto_update_state(settings)
     _auto_update_heartbeat(settings)
     st.markdown(get_dashboard_css(), unsafe_allow_html=True)
@@ -96,72 +98,31 @@ def render_dashboard(settings: Settings) -> None:
     filter_options = load_filter_options(settings)
     collector_names = list_collectors()
 
-    st.markdown("<div class='inline-kicker'>来源</div>", unsafe_allow_html=True)
-    source_options = ["全部"] + filter_options["source"]
-    selected_source = st.radio(
-        "来源",
-        source_options,
-        horizontal=True,
-        label_visibility="collapsed",
-        index=0,
-    )
-    first_time, first_region, first_topic, first_search, first_sort = st.columns(5, gap="medium")
-    with first_time:
-        hours = st.selectbox("时间窗口", [24, 72, 168, 720], index=1, format_func=lambda x: f"{x} 小时", label_visibility="collapsed")
-    with first_region:
-        region = st.selectbox("区域", ["全部"] + filter_options["region"], index=0)
-    with first_topic:
-        topic = st.selectbox("主题", ["全部"] + filter_options["topic"], index=0)
-    with first_search:
-        search = st.text_input("搜索", placeholder="搜索标题或摘要…", label_visibility="collapsed")
-    with first_sort:
-        sort_by = st.selectbox("排序", ["time", "importance"], index=0, format_func=lambda x: "时间降序" if x == "time" else "重要性降序", label_visibility="collapsed")
+    st.markdown(f"<div class='status-ribbon'>● {_format_auto_update_note()}</div>", unsafe_allow_html=True)
 
-    st.markdown("<div class='control-row-gap'></div>", unsafe_allow_html=True)
-    second_total, second_action, second_translate, second_auto_toggle, second_auto_interval = st.columns([1, 1, 1, 1.1, 1.2], gap="medium")
-    with second_total:
+    with st.expander("筛选与控制", expanded=False):
         render_stat_panel("总条数", str(stats.article_count))
-    with second_action:
-        st.markdown("<div class='control-caption'>数据抓取</div>", unsafe_allow_html=True)
-        if st.button("重新抓取", use_container_width=True, type="primary"):
-            with st.spinner("Running collection and processing pipeline..."):
-                result = run_pipeline(settings)
-            st.session_state["auto_update_last_run_ts"] = time.time()
-            st.session_state["auto_update_last_result"] = result
-            st.session_state["auto_update_status"] = (
-                f"手动更新完成 · collected {result.collected_count} · stored {result.stored_count}"
-            )
-            st.success(
-                f"Pipeline finished: collected {result.collected_count}, "
-                f"stored {result.stored_count}, duplicates {result.duplicate_count}."
-            )
-            st.rerun()
-    with second_translate:
-        st.markdown("<div class='control-caption'>翻译操作</div>", unsafe_allow_html=True)
-        translate_disabled = not translation_is_configured(settings)
-        if st.button("补全翻译", use_container_width=True, disabled=translate_disabled, type="secondary"):
-            with st.spinner("Translating high-priority items..."):
-                translated = backfill_recent_translations(
-                    settings,
-                    hours=hours,
-                    limit=max(20, settings.translation_max_items_per_run),
-                )
-            st.success(f"Translation finished: updated {translated} titles, prioritizing important flash items.")
-            st.rerun()
-    with second_auto_toggle:
-        st.markdown("<div class='control-caption'>自动更新</div>", unsafe_allow_html=True)
-        auto_enabled = st.toggle(
-            "自动更新",
-            value=bool(st.session_state.get("auto_update_enabled", settings.auto_update_enabled)),
+
+        st.markdown("<div class='inline-kicker'>资讯源</div>", unsafe_allow_html=True)
+        source_options = ["全部"] + filter_options["source"]
+        selected_source = st.radio(
+            "资讯源",
+            source_options,
+            horizontal=True,
             label_visibility="collapsed",
+            index=0,
         )
-        if auto_enabled != st.session_state.get("auto_update_enabled"):
-            st.session_state["auto_update_enabled"] = auto_enabled
-            st.session_state["auto_update_last_run_ts"] = time.time()
-            st.session_state["auto_update_status"] = "自动更新已开启" if auto_enabled else "自动更新已关闭"
-            st.rerun()
-    with second_auto_interval:
-        st.markdown("<div class='control-caption'>刷新间隔</div>", unsafe_allow_html=True)
+
+        hours = st.selectbox("时间窗口", [24, 72, 168, 720], index=1, format_func=lambda x: f"{x} 小时")
+        region = st.selectbox("区域", ["全部"] + filter_options["region"], index=0)
+        topic = st.selectbox("主题", ["全部"] + filter_options["topic"], index=0)
+        search = st.text_input("搜索", placeholder="搜索标题或摘要…")
+        sort_by = st.selectbox(
+            "排序",
+            ["time", "importance"],
+            index=0,
+            format_func=lambda x: "时间降序" if x == "time" else "重要性降序",
+        )
         interval_seconds = st.selectbox(
             "刷新间隔",
             AUTO_UPDATE_INTERVAL_OPTIONS,
@@ -173,7 +134,6 @@ def render_dashboard(settings: Settings) -> None:
                 else 2
             ),
             format_func=lambda value: f"{value} 秒",
-            label_visibility="collapsed",
         )
         if interval_seconds != st.session_state.get("auto_update_interval_seconds"):
             st.session_state["auto_update_interval_seconds"] = interval_seconds
@@ -181,7 +141,54 @@ def render_dashboard(settings: Settings) -> None:
             st.session_state["auto_update_status"] = f"自动更新间隔已调整为 {interval_seconds} 秒"
             st.rerun()
 
-    st.markdown(f"<div class='status-ribbon'>● {_format_auto_update_note()}</div>", unsafe_allow_html=True)
+        st.markdown("<div class='control-action-group'></div>", unsafe_allow_html=True)
+        expander_action, expander_translate, expander_auto_toggle = st.columns([1, 1, 1], gap="medium")
+        with expander_action:
+            st.markdown("<div class='control-caption'>数据抓取</div>", unsafe_allow_html=True)
+            if st.button("重新抓取", use_container_width=True, type="primary"):
+                with st.spinner("Running collection and processing pipeline..."):
+                    result = run_pipeline(settings)
+                st.session_state["auto_update_last_run_ts"] = time.time()
+                st.session_state["auto_update_last_result"] = result
+                st.session_state["auto_update_status"] = (
+                    f"手动更新完成 · collected {result.collected_count} · stored {result.stored_count}"
+                )
+                st.success(
+                    f"Pipeline finished: collected {result.collected_count}, "
+                    f"stored {result.stored_count}, duplicates {result.duplicate_count}."
+                )
+                st.rerun()
+        with expander_translate:
+            st.markdown("<div class='control-caption'>翻译操作</div>", unsafe_allow_html=True)
+            translate_disabled = not translation_is_configured(settings)
+            if st.button("补全翻译", use_container_width=True, disabled=translate_disabled, type="secondary"):
+                with st.spinner("Translating high-priority items..."):
+                    translated = backfill_recent_translations(
+                        settings,
+                        hours=hours,
+                        limit=max(20, settings.translation_max_items_per_run),
+                    )
+                st.success(f"Translation finished: updated {translated} translated fields, prioritizing important flash items.")
+                st.rerun()
+        with expander_auto_toggle:
+            st.markdown("<div class='control-caption'>自动更新</div>", unsafe_allow_html=True)
+            auto_enabled = st.toggle(
+                "自动更新",
+                value=bool(st.session_state.get("auto_update_enabled", settings.auto_update_enabled)),
+                help="打开后页面会按设定间隔自动刷新数据",
+            )
+            if auto_enabled != st.session_state.get("auto_update_enabled"):
+                st.session_state["auto_update_enabled"] = auto_enabled
+                st.session_state["auto_update_last_run_ts"] = time.time()
+                st.session_state["auto_update_status"] = "自动更新已开启" if auto_enabled else "自动更新已关闭"
+                st.rerun()
+
+    hours = locals().get("hours", 72)
+    region = locals().get("region", "全部")
+    topic = locals().get("topic", "全部")
+    search = locals().get("search", "")
+    sort_by = locals().get("sort_by", "time")
+    selected_source = locals().get("selected_source", "全部")
 
     flash_items = load_flash_items(settings, hours=hours, limit=5)
     source_status_rows = load_source_status(settings, hours=hours)

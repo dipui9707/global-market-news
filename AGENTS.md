@@ -25,7 +25,7 @@ This repository is developed as a staged MVP for a financial intelligence aggreg
 - This product is a financial intelligence feedboard, not a generic news homepage.
 - Optimize for scan speed, research usefulness, and advisory workflow support.
 - High-density layouts are acceptable when they improve information throughput.
-- Keep the dashboard visually coherent with the current dark terminal-style design unless the product direction changes.
+- Keep the dashboard visually coherent with the current light paper-toned research-board design unless the product direction changes.
 - Default feed behavior should prioritize latest information unless the user explicitly changes sorting.
 
 ## Source Rules
@@ -40,6 +40,7 @@ This repository is developed as a staged MVP for a financial intelligence aggreg
 - Titles, links, summaries, derived tags, scores, and event grouping are the primary user-facing artifacts.
 - Do not optimize for storing or presenting large copyrighted article bodies.
 - Rule-based implementations are acceptable in MVP as long as they are explicit and replaceable.
+- Duplicate-story collapsing in the main feed is acceptable as long as raw source rows are still retained in SQLite.
 
 ## Environment Rules
 
@@ -55,3 +56,4 @@ This repository is developed as a staged MVP for a financial intelligence aggreg
 - Prefer small, focused diffs over broad refactors.
 - If a real integration is not yet ready, implement an explicit placeholder rather than pretending it works.
 - Dashboard interaction changes should preserve both manual refresh and any existing auto-update workflow unless a product change explicitly removes one.
+- Mobile interaction changes should preserve a collapsed control area pattern and keep first-screen content focused on the feed.

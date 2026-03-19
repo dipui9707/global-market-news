@@ -42,13 +42,15 @@ Status: completed
 Delivered:
 
 - Rule-based cleaning
-- URL and content fingerprint deduplication
+- URL, content fingerprint, and lightweight story-key deduplication
 - Rule-based tagging
 - Rule-based summarization
+- Optional title, summary, and event-text translation through Alibaba Cloud Qwen-MT
 - Minimal event grouping
 - Rule-based importance scoring
 - Main feedboard UI with filters and side panels
 - Optional in-dashboard auto-update with timed pipeline refresh
+- Main feed duplicate-story collapsing so repeated coverage does not flood the board
 
 Validation completed:
 
@@ -61,8 +63,9 @@ Status: completed
 
 Delivered:
 
-- Terminal-style dark dashboard layout
+- Light paper-toned dashboard layout
 - Header and control area redesign
+- Mobile-friendly collapsed filter-and-control area to reduce first-screen control bloat
 - Flash panel and timeline-style feed presentation
 - Source status side panel
 - Hot topic side panel
@@ -73,16 +76,6 @@ Validation completed:
 - Streamlit UI reachable at local dashboard address
 - Layout supports current MVP data and filters
 
-## Translation Experiment
-
-Status: rolled back
-
-Summary:
-
-- Earlier translation experiments were rolled back
-- The current baseline now supports an optional Alibaba Cloud Qwen-MT title translation path
-- Translation remains opt-in so the core ingestion pipeline stays runnable without model credentials
-
 ## Current Baseline
 
 The repository currently represents:
@@ -91,8 +84,11 @@ The repository currently represents:
 - SQLite-backed MVP
 - Live ingestion from official macro sources plus a wider financial media set
 - Rule-based enrichment pipeline
-- A terminal-style financial information board focused on latest-feed workflow
+- Optional Alibaba Cloud Qwen-MT translation for titles, summaries, and event text
+- A light research-board UI focused on latest-feed workflow
 - Automatic retention cap for the article table to keep the SQLite dataset bounded
+- Lightweight story grouping to distinguish same-URL, same-content, and same-story duplicate cases
+- A working ECS deployment path with `systemd`, `nginx`, scheduled ingestion, and daily backup
 
 ## Next Suggested Work
 

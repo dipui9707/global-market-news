@@ -30,6 +30,7 @@ class Settings:
     translation_source_lang: str
     translation_target_lang: str
     translation_max_items_per_run: int
+    story_dedup_lookback_hours: int
 
     @property
     def database_path(self) -> Path:
@@ -58,4 +59,5 @@ def get_settings() -> Settings:
         translation_source_lang=os.getenv("TRANSLATION_SOURCE_LANG", "auto"),
         translation_target_lang=os.getenv("TRANSLATION_TARGET_LANG", "Chinese"),
         translation_max_items_per_run=int(os.getenv("TRANSLATION_MAX_ITEMS_PER_RUN", "40")),
+        story_dedup_lookback_hours=int(os.getenv("STORY_DEDUP_LOOKBACK_HOURS", "36")),
     )

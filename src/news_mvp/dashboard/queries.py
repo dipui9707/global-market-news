@@ -22,6 +22,7 @@ class ArticleCard:
     id: str
     title: str
     title_zh: str | None
+    summary_zh: str | None
     source: str
     published_at: str | None
     fetched_at: str
@@ -31,7 +32,9 @@ class ArticleCard:
     url: str
     importance_score: float
     is_duplicate: int
+    dedup_reason: str | None
     event_title: str | None
+    event_title_zh: str | None
     topic_tags: list[str]
     asset_tags: list[str]
 
@@ -115,6 +118,7 @@ def load_article_feed(
     search: str | None = None,
     sort_by: str = "importance",
     limit: int | None = None,
+    collapse_duplicates: bool = True,
 ) -> list[ArticleCard]:
     lookback_floor = (datetime.now(UTC) - timedelta(hours=hours)).isoformat()
     params: list[Any] = [lookback_floor]
@@ -123,6 +127,7 @@ def load_article_feed(
             a.id,
             a.title,
             a.title_zh,
+            a.summary_zh,
             a.source,
             a.published_at,
             a.fetched_at,
@@ -132,7 +137,9 @@ def load_article_feed(
             a.url,
             a.importance_score,
             a.is_duplicate,
+            a.dedup_reason,
             e.event_title,
+            e.event_title_zh,
             GROUP_CONCAT(CASE WHEN t.tag_type = 'topic' THEN t.tag_name END) AS topic_tags,
             GROUP_CONCAT(CASE WHEN t.tag_type = 'asset' THEN t.tag_name END) AS asset_tags
         FROM articles a
@@ -144,6 +151,8 @@ def load_article_feed(
     """
     query = _append_hidden_source_filter(query, "a")
     params.extend(HIDDEN_SOURCES)
+    if collapse_duplicates:
+        query += " AND (a.is_duplicate = 0 OR COALESCE(a.canonical_article_id, a.id) = a.id)"
     if region:
         query += " AND a.region = ?"
         params.append(region)
@@ -163,13 +172,13 @@ def load_article_feed(
         """
         params.append(topic)
     if search:
-        query += " AND (LOWER(a.title) LIKE ? OR LOWER(COALESCE(a.title_zh, '')) LIKE ? OR LOWER(COALESCE(a.summary, '')) LIKE ?)"
+        query += " AND (LOWER(a.title) LIKE ? OR LOWER(COALESCE(a.title_zh, '')) LIKE ? OR LOWER(COALESCE(a.summary, '')) LIKE ? OR LOWER(COALESCE(a.summary_zh, '')) LIKE ?)"
         keyword = f"%{search.lower()}%"
-        params.extend([keyword, keyword, keyword])
+        params.extend([keyword, keyword, keyword, keyword])
     query += """
         GROUP BY
             a.id, a.title, a.source, a.published_at, a.fetched_at, a.region, a.event_type,
-            a.summary, a.url, a.importance_score, a.is_duplicate, e.event_title
+            a.summary, a.summary_zh, a.url, a.importance_score, a.is_duplicate, a.dedup_reason, e.event_title, e.event_title_zh
     """
     if sort_by == "time":
         query += " ORDER BY COALESCE(a.published_at, a.fetched_at) DESC, a.importance_score DESC"
@@ -192,6 +201,7 @@ def load_article_feed(
             id=row["id"],
             title=row["title"],
             title_zh=row["title_zh"],
+            summary_zh=row["summary_zh"],
             source=row["source"],
             published_at=row["published_at"],
             fetched_at=row["fetched_at"],
@@ -201,7 +211,9 @@ def load_article_feed(
             url=row["url"],
             importance_score=float(row["importance_score"] or 0),
             is_duplicate=int(row["is_duplicate"] or 0),
+            dedup_reason=row["dedup_reason"],
             event_title=row["event_title"],
+            event_title_zh=row["event_title_zh"],
             topic_tags=split_tags(row["topic_tags"]),
             asset_tags=split_tags(row["asset_tags"]),
         )

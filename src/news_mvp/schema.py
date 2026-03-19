@@ -10,6 +10,7 @@ SCHEMA_STATEMENTS = [
         title TEXT NOT NULL,
         title_zh TEXT,
         summary TEXT,
+        summary_zh TEXT,
         url TEXT NOT NULL UNIQUE,
         published_at TEXT,
         fetched_at TEXT NOT NULL,
@@ -17,12 +18,15 @@ SCHEMA_STATEMENTS = [
         raw_text TEXT,
         clean_text TEXT,
         content_hash TEXT,
+        story_key TEXT,
         importance_score REAL NOT NULL DEFAULT 0,
         region TEXT,
         sentiment TEXT,
         event_type TEXT,
         is_duplicate INTEGER NOT NULL DEFAULT 0,
-        duplicate_group_id TEXT
+        duplicate_group_id TEXT,
+        dedup_reason TEXT,
+        canonical_article_id TEXT
     )
     """,
     """
@@ -46,6 +50,7 @@ SCHEMA_STATEMENTS = [
     CREATE TABLE IF NOT EXISTS events (
         id TEXT PRIMARY KEY,
         event_title TEXT NOT NULL,
+        event_title_zh TEXT,
         event_summary TEXT,
         first_seen_at TEXT NOT NULL,
         last_seen_at TEXT NOT NULL,
@@ -77,6 +82,14 @@ SCHEMA_STATEMENTS = [
     """
     CREATE INDEX IF NOT EXISTS idx_articles_duplicate_group
     ON articles (duplicate_group_id)
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_articles_story_key
+    ON articles (story_key)
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_articles_canonical_article
+    ON articles (canonical_article_id)
     """,
 ]
 

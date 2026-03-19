@@ -31,9 +31,11 @@ def render_header() -> None:
 def render_flash_panel(items: list[FlashItem]) -> None:
     rows = "".join(
         (
-            f"<li>{escape(sanitize_text(item.title_zh) or sanitize_text(item.title))} "
-            f"<a href=\"{escape(item.url)}\" target=\"_blank\" class=\"feed-link\">原文</a> "
-            f"<span class='score-chip'>[{escape(item.source)} {item.importance_score:.0f}]</span></li>"
+            "<li class='flash-item'>"
+            f"<span class='flash-title'>{escape(sanitize_text(item.title_zh) or sanitize_text(item.title))}</span>"
+            f"<span class='flash-meta'><a href=\"{escape(item.url)}\" target=\"_blank\" class=\"feed-link\">原文</a>"
+            f"<span class='score-chip'>[{escape(item.source)} {item.importance_score:.0f}]</span></span>"
+            "</li>"
         )
         for item in items
     ) or "<li>暂无高优先级快讯</li>"
@@ -56,10 +58,10 @@ def render_feed_item(article: ArticleCard) -> None:
     ago = _relative_time(dt) if dt else "未知"
     clean_title = sanitize_text(article.title)
     clean_title_zh = sanitize_text(article.title_zh)
-    clean_summary = sanitize_text(article.summary) or "No summary available."
-    title_zh_block = ""
-    if clean_title_zh and clean_title_zh != clean_title:
-        title_zh_block = f"<div class='feed-title-zh'>{escape(clean_title_zh)}</div>"
+    clean_summary = sanitize_text(article.summary)
+    clean_summary_zh = sanitize_text(article.summary_zh)
+    display_summary = clean_summary_zh if clean_summary_zh and clean_summary_zh != clean_summary else clean_summary or "No summary available."
+    display_title = clean_title_zh if clean_title_zh and clean_title_zh != clean_title else clean_title
     badges = [f"<span class='badge source'>{escape(article.source)}</span>"]
     for tag in article.topic_tags[:3]:
         badges.append(f"<span class='badge'>{escape(tag)}</span>")
@@ -68,10 +70,11 @@ def render_feed_item(article: ArticleCard) -> None:
     if article.event_type:
         badges.append(f"<span class='badge'>{escape(article.event_type)}</span>")
     if article.is_duplicate:
-        badges.append("<span class='badge duplicate'>重复报道</span>")
-    event_line = f"<div class='meta-line'>事件归类：{escape(article.event_title)}</div>" if article.event_title else ""
+        duplicate_label = "重复链接" if article.dedup_reason == "same_url" else "重复报道"
+        badges.append(f"<span class='badge duplicate'>{duplicate_label}</span>")
+    priority_class = "priority-high" if article.importance_score >= 80 else "priority-medium" if article.importance_score >= 60 else ""
     html = (
-        "<div class=\"feed-card\">"
+        f"<div class=\"feed-card {priority_class}\">"
         "<div class=\"feed-layout\">"
         "<div class=\"time-col\">"
         f"<div class=\"time-main\">{main_time}</div>"
@@ -79,11 +82,9 @@ def render_feed_item(article: ArticleCard) -> None:
         "</div>"
         "<div>"
         f"<div class=\"meta-line\">{escape(article.region or 'Global')} · {escape(article.source)}</div>"
-        f"{title_zh_block}"
-        f"<div class=\"feed-title\">{escape(clean_title)}</div>"
+        f"<div class=\"feed-title\">{escape(display_title)}</div>"
         f"<div class=\"badge-row\">{''.join(badges)}</div>"
-        f"{event_line}"
-        f"<div class=\"summary-text\">{escape(clean_summary)}</div>"
+        f"<div class=\"summary-text\">{escape(display_summary)}</div>"
         "<div class=\"feed-footer\">"
         f"<div class=\"score-chip\">重要性 {article.importance_score:.1f}</div>"
         f"<div><a href=\"{escape(article.url)}\" target=\"_blank\" class=\"feed-link\">原文</a></div>"
@@ -147,6 +148,7 @@ def render_notes_panel() -> None:
                 • 当前以稳定公开 feed 为优先抓取方式。<br/>
                 • 看板为研究导向信息流，不展示大段原文全文。<br/>
                 • 配置百炼翻译后可自动生成中文标题。<br/>
+                • 主 feed 默认折叠重复报道，仅展示每组代表新闻。<br/>
                 • 评分、标签、事件归类仍为规则版 MVP。<br/>
                 • 建议配合右上刷新按钮进行最新数据拉取。
             </div>

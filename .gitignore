@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+
+.env
+
+data/news_mvp.db
+
+线上运维.txt

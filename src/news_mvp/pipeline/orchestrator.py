@@ -23,7 +23,9 @@ from news_mvp.config import Settings
 from news_mvp.db import (
     connection_scope,
     fetch_article_by_content_hash,
+    fetch_article_by_story_key,
     fetch_article_by_url,
+    fetch_event_by_key,
     initialize_database,
     link_article_event,
     prune_articles,
@@ -33,7 +35,7 @@ from news_mvp.db import (
 )
 from news_mvp.pipeline.cleaning import clean_text
 from news_mvp.pipeline.clustering import assign_event
-from news_mvp.pipeline.dedup import fingerprint_text, make_article_id, normalize_url
+from news_mvp.pipeline.dedup import build_story_key, fingerprint_text, make_article_id, normalize_url
 from news_mvp.pipeline.scoring import score_article
 from news_mvp.pipeline.summarizer import summarize_text
 from news_mvp.pipeline.tagging import infer_tags
@@ -92,13 +94,45 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
 
         for payload in payloads:
             normalized_url = normalize_url(payload.url)
+            article_id = make_article_id(payload.source, normalized_url)
             cleaning_result = clean_text(payload.raw_text or payload.summary or payload.title)
             clean_body = cleaning_result.clean_text or payload.title
             content_hash = fingerprint_text(f"{payload.title} {clean_body}")
+            summary = summarize_text(payload.title, clean_body, payload.summary)
+            story_key = build_story_key(payload.title, payload.summary, clean_body)
 
-            existing_by_url = fetch_article_by_url(connection, normalized_url)
-            existing_by_hash = fetch_article_by_content_hash(connection, content_hash)
-            is_duplicate = existing_by_url is not None or existing_by_hash is not None
+            current_article = fetch_article_by_url(connection, normalized_url)
+            existing_by_url = _non_self_match(current_article, article_id)
+            existing_by_hash = _non_self_match(fetch_article_by_content_hash(connection, content_hash), article_id)
+            existing_by_story = None
+            if story_key:
+                existing_by_story = _non_self_match(
+                    fetch_article_by_story_key(
+                        connection,
+                        story_key,
+                        payload.published_at or payload.fetched_at,
+                        settings.story_dedup_lookback_hours,
+                        exclude_article_id=article_id,
+                    ),
+                    article_id,
+                )
+
+            duplicate_match = existing_by_url or existing_by_hash or existing_by_story
+            canonical_article_id = article_id
+            dedup_reason = None
+            if duplicate_match is not None:
+                canonical_article_id = duplicate_match["canonical_article_id"] or duplicate_match["id"]
+                if canonical_article_id == article_id:
+                    duplicate_match = None
+                    canonical_article_id = article_id
+                elif existing_by_url is not None:
+                    dedup_reason = "same_url"
+                elif existing_by_hash is not None:
+                    dedup_reason = "same_content"
+                elif existing_by_story is not None:
+                    dedup_reason = "same_story"
+
+            is_duplicate = duplicate_match is not None
             if is_duplicate:
                 duplicate_count += 1
 
@@ -106,21 +140,24 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
             region = payload.region or next((tag.tag_name for tag in tags if tag.tag_type == "region"), None)
             event_type = next((tag.tag_name for tag in tags if tag.tag_type == "event_type"), None)
             asset_tag_count = len([tag for tag in tags if tag.tag_type == "asset"])
-            summary = summarize_text(payload.title, clean_body, payload.summary)
             event_assignment = assign_event(payload.title, clean_body)
-            article_id = make_article_id(payload.source, normalized_url)
+            existing_event = fetch_event_by_key(connection, event_assignment.event_key) if event_assignment.event_key else None
 
             duplicate_group_id = None
-            if existing_by_hash is not None:
-                duplicate_group_id = existing_by_hash["id"]
-            elif existing_by_url is not None:
-                duplicate_group_id = existing_by_url["id"]
+            if duplicate_match is not None:
+                duplicate_group_id = canonical_article_id
 
             existing_title_zh = None
-            if existing_by_hash is not None and existing_by_hash["title_zh"]:
-                existing_title_zh = existing_by_hash["title_zh"]
-            elif existing_by_url is not None and existing_by_url["title_zh"]:
-                existing_title_zh = existing_by_url["title_zh"]
+            existing_summary_zh = None
+            for translation_source in (current_article, duplicate_match):
+                if translation_source is None:
+                    continue
+                if existing_title_zh is None and translation_source["title_zh"]:
+                    existing_title_zh = translation_source["title_zh"]
+                if existing_summary_zh is None and translation_source["summary_zh"]:
+                    existing_summary_zh = translation_source["summary_zh"]
+                if existing_title_zh and existing_summary_zh:
+                    break
 
             title_zh = existing_title_zh
             if title_zh is None and payload.title in translation_cache:
@@ -143,6 +180,54 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
                 if title_zh:
                     translated_count += 1
 
+            summary_zh = existing_summary_zh
+            if summary_zh is None and summary in translation_cache:
+                summary_zh = translation_cache[summary]
+            elif (
+                summary_zh is None
+                and pending_translation_budget > 0
+                and should_translate_title(
+                    title=summary,
+                    language=payload.language,
+                    existing_translation=existing_summary_zh,
+                )
+            ):
+                try:
+                    summary_zh = translate_title(summary, settings)
+                except requests.RequestException:
+                    summary_zh = None
+                translation_cache[summary] = summary_zh
+                pending_translation_budget -= 1
+                if summary_zh:
+                    translated_count += 1
+
+            existing_event_title_zh = existing_event["event_title_zh"] if existing_event is not None else None
+            event_title_zh = existing_event_title_zh
+            if (
+                event_assignment.event_title
+                and event_title_zh is None
+                and event_assignment.event_title in translation_cache
+            ):
+                event_title_zh = translation_cache[event_assignment.event_title]
+            elif (
+                event_assignment.event_title
+                and event_title_zh is None
+                and pending_translation_budget > 0
+                and should_translate_title(
+                    title=event_assignment.event_title,
+                    language=payload.language,
+                    existing_translation=existing_event_title_zh,
+                )
+            ):
+                try:
+                    event_title_zh = translate_title(event_assignment.event_title, settings)
+                except requests.RequestException:
+                    event_title_zh = None
+                translation_cache[event_assignment.event_title] = event_title_zh
+                pending_translation_budget -= 1
+                if event_title_zh:
+                    translated_count += 1
+
             importance = score_article(
                 source=payload.source,
                 event_type=event_type,
@@ -157,6 +242,7 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
                 "title": payload.title,
                 "title_zh": title_zh,
                 "summary": summary,
+                "summary_zh": summary_zh,
                 "url": normalized_url,
                 "published_at": payload.published_at,
                 "fetched_at": payload.fetched_at,
@@ -164,12 +250,15 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
                 "raw_text": payload.raw_text,
                 "clean_text": clean_body,
                 "content_hash": content_hash,
+                "story_key": story_key,
                 "importance_score": importance,
                 "region": region,
                 "sentiment": None,
                 "event_type": event_type,
                 "is_duplicate": int(is_duplicate),
                 "duplicate_group_id": duplicate_group_id,
+                "dedup_reason": dedup_reason,
+                "canonical_article_id": canonical_article_id,
             }
             upsert_article(connection, article)
             replace_article_tags(
@@ -185,6 +274,7 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
                 event = {
                     "id": str(uuid4()),
                     "event_title": event_assignment.event_title or payload.title,
+                    "event_title_zh": event_title_zh,
                     "event_summary": summary,
                     "first_seen_at": payload.published_at or now_iso,
                     "last_seen_at": payload.published_at or now_iso,
@@ -207,9 +297,15 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
         message=(
             "Pipeline completed with live source ingestion."
             if translated_count == 0
-            else f"Pipeline completed with live source ingestion and {translated_count} translated titles."
+            else f"Pipeline completed with live source ingestion and {translated_count} translated fields."
         ),
         collected_count=collected_count,
         stored_count=stored_count - pruned_count,
         duplicate_count=duplicate_count,
     )
+
+
+def _non_self_match(row: object, article_id: str):
+    if row is None:
+        return None
+    return None if row["id"] == article_id else row

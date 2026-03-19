@@ -6,7 +6,7 @@ import re
 import requests
 
 from news_mvp.config import Settings
-from news_mvp.db import connection_scope, update_article_translation
+from news_mvp.db import connection_scope, update_article_translations, update_event_translation
 
 
 HIDDEN_SOURCES = ("联合早报",)
@@ -16,10 +16,10 @@ def translation_is_configured(settings: Settings) -> bool:
     return settings.translation_enabled and bool(settings.dashscope_api_key)
 
 
-def should_translate_title(*, title: str, language: str | None, existing_translation: str | None) -> bool:
+def should_translate_text(*, text: str | None, language: str | None, existing_translation: str | None) -> bool:
     if existing_translation:
         return False
-    normalized = title.strip()
+    normalized = (text or "").strip()
     if not normalized:
         return False
     if language and language.lower().startswith("zh"):
@@ -29,7 +29,11 @@ def should_translate_title(*, title: str, language: str | None, existing_transla
     return True
 
 
-def translate_title(title: str, settings: Settings) -> str | None:
+def should_translate_title(*, title: str, language: str | None, existing_translation: str | None) -> bool:
+    return should_translate_text(text=title, language=language, existing_translation=existing_translation)
+
+
+def translate_text(text: str, settings: Settings) -> str | None:
     if not translation_is_configured(settings):
         return None
 
@@ -41,7 +45,7 @@ def translate_title(title: str, settings: Settings) -> str | None:
         },
         json={
             "model": settings.translation_model,
-            "messages": [{"role": "user", "content": title}],
+            "messages": [{"role": "user", "content": text}],
             "translation_options": {
                 "source_lang": settings.translation_source_lang,
                 "target_lang": settings.translation_target_lang,
@@ -58,6 +62,10 @@ def translate_title(title: str, settings: Settings) -> str | None:
     message = choices[0].get("message") or {}
     content = (message.get("content") or "").strip()
     return content or None
+
+
+def translate_title(title: str, settings: Settings) -> str | None:
+    return translate_text(title, settings)
 
 
 def iter_titles_to_translate(
@@ -82,9 +90,16 @@ def backfill_recent_translations(settings: Settings, hours: int, limit: int) -> 
         SELECT
             id,
             title,
+            summary,
             language,
-            title_zh
+            title_zh,
+            summary_zh,
+            e.id AS event_id,
+            e.event_title,
+            e.event_title_zh
         FROM articles
+        LEFT JOIN article_event_map aem ON articles.id = aem.article_id
+        LEFT JOIN events e ON aem.event_id = e.id
         WHERE COALESCE(published_at, fetched_at) >= datetime('now', ?)
           AND source NOT IN ({", ".join("?" for _ in HIDDEN_SOURCES)})
         ORDER BY importance_score DESC, COALESCE(published_at, fetched_at) DESC
@@ -101,30 +116,63 @@ def backfill_recent_translations(settings: Settings, hours: int, limit: int) -> 
                 break
 
             title = row["title"]
-            if not should_translate_title(
-                title=title,
-                language=row["language"],
-                existing_translation=row["title_zh"],
-            ):
-                continue
+            summary = row["summary"]
+            event_title = row["event_title"]
 
-            if title in translation_cache:
-                translation = translation_cache[title]
-            else:
-                try:
-                    translation = translate_title(title, settings)
-                except requests.RequestException:
-                    translation = None
-                translation_cache[title] = translation
+            title_zh = _translate_with_cache(
+                translation_cache,
+                title,
+                settings,
+                should_translate_text(text=title, language=row["language"], existing_translation=row["title_zh"]),
+            )
+            summary_zh = _translate_with_cache(
+                translation_cache,
+                summary,
+                settings,
+                should_translate_text(text=summary, language=row["language"], existing_translation=row["summary_zh"]),
+            )
+            event_title_zh = _translate_with_cache(
+                translation_cache,
+                event_title,
+                settings,
+                should_translate_text(text=event_title, language=row["language"], existing_translation=row["event_title_zh"]),
+            )
 
-            if not translation:
-                continue
+            if title_zh or summary_zh:
+                update_article_translations(
+                    connection,
+                    row["id"],
+                    title_zh=title_zh,
+                    summary_zh=summary_zh,
+                )
+            if event_title_zh and row["event_id"]:
+                update_event_translation(connection, row["event_id"], event_title_zh)
 
-            update_article_translation(connection, row["id"], translation)
-            translated_count += 1
+            translated_count += sum(1 for value in (title_zh, summary_zh, event_title_zh) if value)
 
     return translated_count
 
 
 def _contains_chinese(value: str) -> bool:
     return bool(re.search(r"[\u4e00-\u9fff]", value))
+
+
+def _translate_with_cache(
+    translation_cache: dict[str, str | None],
+    text: str | None,
+    settings: Settings,
+    should_translate: bool,
+) -> str | None:
+    if not should_translate:
+        return None
+    normalized = (text or "").strip()
+    if not normalized:
+        return None
+    if normalized in translation_cache:
+        return translation_cache[normalized]
+    try:
+        translation = translate_text(normalized, settings)
+    except requests.RequestException:
+        translation = None
+    translation_cache[normalized] = translation
+    return translation
