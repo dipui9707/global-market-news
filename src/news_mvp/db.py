@@ -339,35 +339,43 @@ def _ensure_event_schema(connection: sqlite3.Connection) -> None:
 
 
 def _normalize_article_event_map(connection: sqlite3.Connection) -> None:
-    stale_rows = connection.execute(
+    rows = connection.execute(
         """
-        SELECT article_id, event_id
-        FROM (
-            SELECT
-                aem.article_id,
-                aem.event_id,
-                ROW_NUMBER() OVER (
-                    PARTITION BY aem.article_id
-                    ORDER BY
-                        COALESCE(e.importance_score, 0) DESC,
-                        COALESCE(e.last_seen_at, '') DESC,
-                        COALESCE(e.first_seen_at, '') DESC,
-                        aem.event_id DESC
-                ) AS rn
-            FROM article_event_map aem
-            LEFT JOIN events e ON aem.event_id = e.id
-        )
-        WHERE rn > 1
+        SELECT
+            aem.article_id,
+            aem.event_id,
+            COALESCE(e.importance_score, 0) AS importance_score,
+            COALESCE(e.last_seen_at, '') AS last_seen_at,
+            COALESCE(e.first_seen_at, '') AS first_seen_at
+        FROM article_event_map aem
+        LEFT JOIN events e ON aem.event_id = e.id
+        ORDER BY
+            aem.article_id ASC,
+            importance_score DESC,
+            last_seen_at DESC,
+            first_seen_at DESC,
+            aem.event_id DESC
         """
     ).fetchall()
-    for row in stale_rows:
+
+    keep_by_article: dict[str, str] = {}
+    stale_rows: list[tuple[str, str]] = []
+    for row in rows:
+        article_id = row["article_id"]
+        event_id = row["event_id"]
+        if article_id not in keep_by_article:
+            keep_by_article[article_id] = event_id
+            continue
+        stale_rows.append((article_id, event_id))
+
+    for article_id, event_id in stale_rows:
         connection.execute(
             """
             DELETE FROM article_event_map
             WHERE article_id = ?
               AND event_id = ?
             """,
-            (row["article_id"], row["event_id"]),
+            (article_id, event_id),
         )
 
     connection.execute(
