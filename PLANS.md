@@ -49,9 +49,11 @@ Delivered:
 - Minimal event grouping
 - Rule-based importance scoring
 - Main feedboard UI with filters and side panels
+- Search ranking that prioritizes title matches and supports tag/event lookup
 - Optional in-dashboard auto-update with timed pipeline refresh
 - Main feed duplicate-story collapsing so repeated coverage does not flood the board
 - Query-side and DB-side normalization to keep each article mapped to a single primary event
+- Incremental feed loading for longer history browsing
 
 Validation completed:
 
@@ -87,9 +89,12 @@ The repository currently represents:
 - Rule-based enrichment pipeline
 - Optional Alibaba Cloud Qwen-MT translation for titles only
 - A light research-board UI focused on latest-feed workflow
+- Search that is more useful for research lookup, with title-first ranking and tag/event support
+- Incremental history browsing through a load-more feed interaction
 - Automatic retention cap for the article table to keep the SQLite dataset bounded
 - Lightweight story grouping to distinguish same-URL, same-content, and same-story duplicate cases
 - Feed query protections against repeated rows caused by duplicate event joins
+- Reduced SQLite lock contention during dashboard startup and scheduled ingestion overlap
 - A working ECS deployment path with `systemd`, `nginx`, scheduled ingestion, and daily backup
 
 ## Next Suggested Work

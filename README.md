@@ -29,7 +29,7 @@ The repository now includes a runnable MVP with:
   - minimal event grouping
   - rule-based importance scoring
 - Optional Qwen-MT translation for titles only
-- A Streamlit dashboard with a light paper-toned research board style, duplicate-story collapsing, and mobile-friendly collapsed controls
+- A Streamlit dashboard with a light paper-toned research board style, duplicate-story collapsing, improved search ranking, incremental history loading, and mobile-friendly collapsed controls
 
 The project currently runs on the default local Python 3.14 environment.
 
@@ -106,6 +106,8 @@ streamlit run streamlit_app.py
 ```
 
 The dashboard also includes a built-in refresh button for rerunning ingestion from the UI.
+
+The current dashboard defaults to a larger initial feed slice and supports incremental loading for deeper history browsing.
 
 ## Server Operations
 
@@ -286,13 +288,15 @@ The current Streamlit board supports:
 - source filter
 - topic filter
 - region filter
-- search
+- search across titles, tags, and event titles
+- title-prioritized search ranking, with summary matches treated as lower-priority hits
 - sort by time or importance
 - auto update toggle and interval control
 - optional Chinese translated titles for foreign-language items
 - summaries remain in the original source language
 - important flash panel
 - main feed timeline
+- default initial feed load of 100 items with a `加载更多` interaction for deeper history browsing
 - default duplicate-story collapsing in the main feed
 - compact mobile-friendly control area with a collapsed filter panel
 - source status side panel
@@ -306,6 +310,7 @@ The current Streamlit board supports:
 - The pipeline can automatically prune the article table to the most recent retained records
 - Duplicate stories are still stored in SQLite, but the main feed now collapses duplicate rows by default
 - Each article is normalized to a single primary event mapping to avoid duplicate feed rows from repeated event joins
+- SQLite connections use `WAL` mode and a busy timeout to reduce lock contention between the dashboard and scheduled ingestion
 - The dashboard displays titles, summaries, tags, scores, and links rather than large raw article bodies
 
 ## What Is Implemented
@@ -316,6 +321,8 @@ The current Streamlit board supports:
 - Optional Alibaba Cloud Qwen-MT title translation
 - Rule-based enrichment and lightweight duplicate-story collapsing
 - Mobile-friendly collapsed controls and a refined light research-board UI
+- Incremental feed loading for longer history browsing
+- Search that prioritizes title matches and also supports tag and event lookups
 - ECS deployment workflow with `systemd`, `nginx`, recurring pipeline runs, and SQLite backup
 
 ## What Is Not Implemented Yet
@@ -335,6 +342,7 @@ The current Streamlit board supports:
 - Automatic translation is opt-in and depends on a configured DashScope API key
 - The current translation mode only applies to titles; summaries remain in the source language
 - Historical article retention defaults to the most recent 5000 records
+- The dashboard does not render all retained rows at once; it loads history incrementally to keep Streamlit responsive
 - Duplicate detection is heuristic and story grouping remains lightweight rather than entity-aware
 - Event grouping is heuristic, not entity-aware
 - Importance scoring is rule-based and intentionally simple
