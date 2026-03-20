@@ -122,6 +122,7 @@ def load_article_feed(
 ) -> list[ArticleCard]:
     lookback_floor = (datetime.now(UTC) - timedelta(hours=hours)).isoformat()
     params: list[Any] = [lookback_floor]
+    search_rank_sql = "999"
     query = """
         SELECT
             a.id,
@@ -138,6 +139,7 @@ def load_article_feed(
             a.importance_score,
             a.is_duplicate,
             a.dedup_reason,
+            """ + search_rank_sql + """ AS search_rank,
             (
                 SELECT e.event_title
                 FROM article_event_map aem
@@ -194,10 +196,85 @@ def load_article_feed(
         """
         params.append(topic)
     if search:
-        query += " AND (LOWER(a.title) LIKE ? OR LOWER(COALESCE(a.title_zh, '')) LIKE ? OR LOWER(COALESCE(a.summary, '')) LIKE ? OR LOWER(COALESCE(a.summary_zh, '')) LIKE ?)"
-        keyword = f"%{search.lower()}%"
-        params.extend([keyword, keyword, keyword, keyword])
-    if sort_by == "time":
+        normalized_search = search.strip().lower()
+        keyword = f"%{normalized_search}%"
+        search_rank_sql = """
+            CASE
+                WHEN LOWER(a.title) = ? OR LOWER(COALESCE(a.title_zh, '')) = ? THEN 0
+                WHEN LOWER(a.title) LIKE ? OR LOWER(COALESCE(a.title_zh, '')) LIKE ? THEN 1
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM article_tags at_search
+                    JOIN tags t_search ON at_search.tag_id = t_search.id
+                    WHERE at_search.article_id = a.id
+                      AND LOWER(t_search.tag_name) LIKE ?
+                ) THEN 2
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM article_event_map aem_search
+                    JOIN events e_search ON aem_search.event_id = e_search.id
+                    WHERE aem_search.article_id = a.id
+                      AND (
+                          LOWER(COALESCE(e_search.event_title, '')) LIKE ?
+                          OR LOWER(COALESCE(e_search.event_title_zh, '')) LIKE ?
+                      )
+                ) THEN 3
+                WHEN LOWER(COALESCE(a.summary, '')) LIKE ? OR LOWER(COALESCE(a.summary_zh, '')) LIKE ? THEN 4
+                ELSE 999
+            END
+        """
+        query = query.replace("999 AS search_rank", f"{search_rank_sql} AS search_rank")
+        query += """
+            AND (
+                LOWER(a.title) LIKE ?
+                OR LOWER(COALESCE(a.title_zh, '')) LIKE ?
+                OR LOWER(COALESCE(a.summary, '')) LIKE ?
+                OR LOWER(COALESCE(a.summary_zh, '')) LIKE ?
+                OR EXISTS (
+                    SELECT 1
+                    FROM article_tags at_search
+                    JOIN tags t_search ON at_search.tag_id = t_search.id
+                    WHERE at_search.article_id = a.id
+                      AND LOWER(t_search.tag_name) LIKE ?
+                )
+                OR EXISTS (
+                    SELECT 1
+                    FROM article_event_map aem_search
+                    JOIN events e_search ON aem_search.event_id = e_search.id
+                    WHERE aem_search.article_id = a.id
+                      AND (
+                          LOWER(COALESCE(e_search.event_title, '')) LIKE ?
+                          OR LOWER(COALESCE(e_search.event_title_zh, '')) LIKE ?
+                      )
+                )
+            )
+        """
+        params.extend(
+            [
+                normalized_search,
+                normalized_search,
+                keyword,
+                keyword,
+                keyword,
+                keyword,
+                keyword,
+                keyword,
+                keyword,
+                keyword,
+                keyword,
+                keyword,
+                keyword,
+                keyword,
+                keyword,
+                keyword,
+            ]
+        )
+    if search:
+        if sort_by == "time":
+            query += " ORDER BY search_rank ASC, COALESCE(a.published_at, a.fetched_at) DESC, a.importance_score DESC"
+        else:
+            query += " ORDER BY search_rank ASC, a.importance_score DESC, COALESCE(a.published_at, a.fetched_at) DESC"
+    elif sort_by == "time":
         query += " ORDER BY COALESCE(a.published_at, a.fetched_at) DESC, a.importance_score DESC"
     else:
         query += " ORDER BY a.importance_score DESC, COALESCE(a.published_at, a.fetched_at) DESC"

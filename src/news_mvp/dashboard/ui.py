@@ -6,7 +6,6 @@ import time
 import streamlit as st
 
 from news_mvp.config import Settings
-from news_mvp.db import initialize_database
 from news_mvp.dashboard.components import (
     render_feed_item,
     render_flash_panel,
@@ -138,7 +137,7 @@ def render_dashboard(settings: Settings) -> None:
         hours = st.selectbox("时间窗口", [24, 72, 168, 720], index=1, format_func=lambda x: f"{x} 小时")
         region = st.selectbox("区域", ["全部"] + filter_options["region"], index=0)
         topic = st.selectbox("主题", ["全部"] + filter_options["topic"], index=0)
-        search = st.text_input("搜索", placeholder="搜索标题或摘要…")
+        search = st.text_input("搜索", placeholder="搜索标题、标签或事件…")
         sort_by = st.selectbox(
             "排序",
             ["time", "importance"],
