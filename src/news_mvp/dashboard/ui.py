@@ -111,7 +111,6 @@ def _sync_feed_pagination(
 
 
 def render_dashboard(settings: Settings) -> None:
-    initialize_database(settings)
     _init_auto_update_state(settings)
     _auto_update_heartbeat(settings)
     st.markdown(get_dashboard_css(), unsafe_allow_html=True)

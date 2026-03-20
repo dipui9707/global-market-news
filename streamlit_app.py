@@ -7,9 +7,15 @@ from news_mvp.db import initialize_database
 from news_mvp.dashboard.ui import render_dashboard
 
 
-def main() -> None:
+@st.cache_resource
+def _initialize_app(settings_fingerprint: tuple[str, str]) -> None:
     settings = get_settings()
     initialize_database(settings)
+
+
+def main() -> None:
+    settings = get_settings()
+    _initialize_app((settings.app_env, settings.database_url))
     st.set_page_config(
         page_title="Financial Intelligence Feedboard",
         page_icon=":newspaper:",
