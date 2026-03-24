@@ -15,7 +15,6 @@ from news_mvp.collectors import (
     FederalReserveCollector,
     MktNewsCollector,
     ReutersCollector,
-    SCMPCollector,
     WSJCollector,
     YahooFinanceCollector,
 )
@@ -61,7 +60,6 @@ def get_collectors() -> list[object]:
         FTCollector(),
         YahooFinanceCollector(),
         AxiosCollector(),
-        SCMPCollector(),
         MktNewsCollector(),
         FederalReserveCollector(),
         BLSCollector(),

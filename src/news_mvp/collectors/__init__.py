@@ -7,7 +7,6 @@ from news_mvp.collectors.media_rss import (
     CNBCCollector,
     CNNCollector,
     FTCollector,
-    SCMPCollector,
     WSJCollector,
     YahooFinanceCollector,
 )
@@ -27,6 +26,5 @@ __all__ = [
     "FTCollector",
     "YahooFinanceCollector",
     "AxiosCollector",
-    "SCMPCollector",
     "MktNewsCollector",
 ]

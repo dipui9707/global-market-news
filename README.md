@@ -19,7 +19,6 @@ The repository now includes a runnable MVP with:
   - FT RSS
   - Yahoo Finance RSS
   - Axios RSS
-  - SCMP RSS
   - MktNews static JSON flash feed
 - Minimal processing pipeline for:
   - text cleaning
@@ -317,7 +316,7 @@ The current Streamlit board supports:
 
 - Federal Reserve official feed ingestion
 - Reuters and BLS source-limited feed ingestion through Google News RSS search
-- Bloomberg, CNBC, CNN, WSJ, FT, Yahoo Finance, Axios, SCMP, and MktNews integrations
+- Bloomberg, CNBC, CNN, WSJ, FT, Yahoo Finance, Axios, and MktNews integrations
 - Optional Alibaba Cloud Qwen-MT title translation
 - Rule-based enrichment and lightweight duplicate-story collapsing
 - Mobile-friendly collapsed controls and a refined light research-board UI

@@ -26,7 +26,7 @@ Delivered:
 - Federal Reserve official RSS collector
 - Reuters collector via Google News RSS source search
 - BLS collector via Google News RSS source search
-- Multi-source media collector expansion for Bloomberg, CNBC, CNN, WSJ, FT, Yahoo Finance, Axios, SCMP, and MktNews
+- Multi-source media collector expansion for Bloomberg, CNBC, CNN, WSJ, FT, Yahoo Finance, Axios, and MktNews
 - Pipeline orchestration entrypoint
 - Article persistence into SQLite
 

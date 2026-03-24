@@ -177,16 +177,57 @@ def get_dashboard_css() -> str:
         font-weight: 700;
     }
 
+    .flash-section-card {
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--gold-soft) 20%, white 80%), color-mix(in srgb, var(--panel) 96%, white 4%));
+        border-color: color-mix(in srgb, var(--gold) 28%, var(--line));
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 14px 28px rgba(88, 58, 25, 0.06);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .flash-section-card::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 92%, white 8%), color-mix(in srgb, #d88f2f 72%, transparent));
+    }
+
+    .flash-section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 0.8rem;
+        margin-bottom: 0.7rem;
+        padding-bottom: 0.45rem;
+        border-bottom: 1px solid color-mix(in srgb, var(--gold) 16%, var(--line));
+    }
+
+    .flash-section-title {
+        margin-bottom: 0;
+        color: color-mix(in srgb, var(--gold) 92%, #8d5d14 8%);
+        letter-spacing: 0.06em;
+    }
+
+    .flash-section-note {
+        color: color-mix(in srgb, var(--text) 62%, var(--muted));
+        font-size: 0.73rem;
+        white-space: nowrap;
+    }
+
     .flash-list {
         margin: 0;
-        padding-left: 1rem;
+        padding-left: 1.15rem;
         color: var(--text);
     }
 
     .flash-list li {
-        padding: 0.42rem 0 0.46rem 0.2rem;
+        padding: 0.56rem 0 0.62rem 0.26rem;
         font-size: 0.95rem;
-        border-bottom: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+        border-bottom: 1px solid color-mix(in srgb, var(--gold) 10%, var(--line));
         position: relative;
     }
 
@@ -197,19 +238,19 @@ def get_dashboard_css() -> str:
     .flash-item::before {
         content: "";
         position: absolute;
-        left: -0.78rem;
-        top: 0.62rem;
-        bottom: 0.6rem;
-        width: 2px;
+        left: -0.88rem;
+        top: 0.72rem;
+        bottom: 0.74rem;
+        width: 3px;
         border-radius: 999px;
         background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 85%, white 15%), color-mix(in srgb, var(--gold) 35%, transparent));
-        opacity: 0.7;
+        opacity: 0.9;
     }
 
     .flash-title {
         color: var(--text);
-        font-weight: 600;
-        line-height: 1.45;
+        font-weight: 700;
+        line-height: 1.52;
     }
 
     .flash-meta {
@@ -217,7 +258,7 @@ def get_dashboard_css() -> str:
         flex-wrap: wrap;
         align-items: center;
         gap: 0.45rem;
-        margin-left: 0.45rem;
+        margin-left: 0.55rem;
     }
 
     .feed-card {
@@ -698,6 +739,12 @@ def get_dashboard_css() -> str:
 
         .flash-list li {
             font-size: 0.88rem;
+        }
+
+        .flash-section-head {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
         }
 
         .section-card {

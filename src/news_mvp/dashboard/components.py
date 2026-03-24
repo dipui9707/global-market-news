@@ -41,8 +41,11 @@ def render_flash_panel(items: list[FlashItem]) -> None:
     ) or "<li>暂无高优先级快讯</li>"
     st.markdown(
         f"""
-        <div class="section-card">
-            <div class="section-title">⚡ 重要快讯</div>
+        <div class="section-card flash-section-card">
+            <div class="flash-section-head">
+                <div class="section-title flash-section-title">⚡ 重要快讯</div>
+                <div class="flash-section-note">高优先级情报速览</div>
+            </div>
             <ol class="flash-list">{rows}</ol>
         </div>
         """,

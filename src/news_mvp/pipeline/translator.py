@@ -91,7 +91,7 @@ def backfill_recent_translations(settings: Settings, hours: int, limit: int) -> 
             id,
             title,
             language,
-            title_zh,
+            title_zh
         FROM articles
         WHERE COALESCE(published_at, fetched_at) >= datetime('now', ?)
           AND source NOT IN ({", ".join("?" for _ in HIDDEN_SOURCES)})
