@@ -39,8 +39,7 @@ def _init_auto_update_state(settings: Settings) -> None:
     st.session_state.setdefault("auto_update_enabled", settings.auto_update_enabled)
     st.session_state.setdefault("auto_update_interval_seconds", settings.auto_update_interval_seconds)
     st.session_state.setdefault("auto_update_last_run_ts", time.time())
-    st.session_state.setdefault("auto_update_status", "自动更新已就绪")
-    st.session_state.setdefault("auto_update_last_result", None)
+    st.session_state.setdefault("auto_update_status", "自动刷新已就绪")
     st.session_state.setdefault("auto_update_running", False)
 
 
@@ -59,17 +58,13 @@ def _auto_update_heartbeat(settings: Settings) -> None:
         return
 
     st.session_state["auto_update_running"] = True
-    st.session_state["auto_update_status"] = "自动更新抓取中…"
+    st.session_state["auto_update_status"] = "自动刷新页面中…"
     try:
-        result = run_pipeline(settings)
-        st.session_state["auto_update_last_result"] = result
         st.session_state["auto_update_last_run_ts"] = time.time()
-        st.session_state["auto_update_status"] = (
-            f"自动更新完成 · collected {result.collected_count} · stored {result.stored_count}"
-        )
+        st.session_state["auto_update_status"] = "自动刷新已完成"
     except Exception as exc:
         st.session_state["auto_update_last_run_ts"] = time.time()
-        st.session_state["auto_update_status"] = f"自动更新失败 · {exc}"
+        st.session_state["auto_update_status"] = f"自动刷新失败 · {exc}"
     finally:
         st.session_state["auto_update_running"] = False
     st.rerun()
@@ -79,9 +74,9 @@ def _format_auto_update_note() -> str:
     enabled = bool(st.session_state.get("auto_update_enabled", False))
     interval_seconds = int(st.session_state.get("auto_update_interval_seconds", 300))
     last_run_ts = st.session_state.get("auto_update_last_run_ts")
-    status = st.session_state.get("auto_update_status", "自动更新已就绪")
+    status = st.session_state.get("auto_update_status", "自动刷新已就绪")
     if not enabled:
-        return "自动更新关闭"
+        return "自动刷新关闭"
     if last_run_ts:
         last_run = datetime.fromtimestamp(float(last_run_ts), UTC).astimezone(BJ_TZ).strftime("%H:%M:%S")
         return f"{status} · 每 {interval_seconds} 秒 · 上次 {last_run} 北京时间"
@@ -159,7 +154,7 @@ def render_dashboard(settings: Settings) -> None:
         if interval_seconds != st.session_state.get("auto_update_interval_seconds"):
             st.session_state["auto_update_interval_seconds"] = interval_seconds
             st.session_state["auto_update_last_run_ts"] = time.time()
-            st.session_state["auto_update_status"] = f"自动更新间隔已调整为 {interval_seconds} 秒"
+            st.session_state["auto_update_status"] = f"自动刷新间隔已调整为 {interval_seconds} 秒"
             st.rerun()
 
         st.markdown("<div class='control-action-group'></div>", unsafe_allow_html=True)
@@ -170,7 +165,6 @@ def render_dashboard(settings: Settings) -> None:
                 with st.spinner("Running collection and processing pipeline..."):
                     result = run_pipeline(settings)
                 st.session_state["auto_update_last_run_ts"] = time.time()
-                st.session_state["auto_update_last_result"] = result
                 st.session_state["auto_update_status"] = (
                     f"手动更新完成 · collected {result.collected_count} · stored {result.stored_count}"
                 )
@@ -196,12 +190,12 @@ def render_dashboard(settings: Settings) -> None:
             auto_enabled = st.toggle(
                 "自动更新",
                 value=bool(st.session_state.get("auto_update_enabled", settings.auto_update_enabled)),
-                help="打开后页面会按设定间隔自动刷新数据",
+                help="打开后页面会按设定间隔自动刷新展示内容，抓取由服务器定时任务负责",
             )
             if auto_enabled != st.session_state.get("auto_update_enabled"):
                 st.session_state["auto_update_enabled"] = auto_enabled
                 st.session_state["auto_update_last_run_ts"] = time.time()
-                st.session_state["auto_update_status"] = "自动更新已开启" if auto_enabled else "自动更新已关闭"
+                st.session_state["auto_update_status"] = "自动刷新已开启" if auto_enabled else "自动刷新已关闭"
                 st.rerun()
 
     hours = locals().get("hours", 72)
