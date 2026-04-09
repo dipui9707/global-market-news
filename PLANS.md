@@ -46,7 +46,6 @@ Delivered:
 - Rule-based tagging
 - Rule-based summarization
 - Optional title-only translation through a configurable OpenAI-compatible translation endpoint
-- Separate title-translation backfill flow so scheduled ingestion is not blocked by translation latency
 - Minimal event grouping
 - Rule-based importance scoring
 - Main feedboard UI with filters and side panels
@@ -96,7 +95,6 @@ The repository currently represents:
 - Lightweight story grouping to distinguish same-URL, same-content, and same-story duplicate cases
 - Feed query protections against repeated rows caused by duplicate event joins
 - Reduced SQLite lock contention during dashboard startup and scheduled ingestion overlap
-- Main ingestion now avoids synchronous translation work and is intended to stay lightweight under timer-based scheduling
 - A working ECS deployment path with `systemd`, `nginx`, scheduled ingestion, and daily backup
 
 ## Next Suggested Work

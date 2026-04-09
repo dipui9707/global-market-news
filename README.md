@@ -41,12 +41,11 @@ The current pipeline is:
 3. Deduplicate by URL, content fingerprint, and lightweight story grouping
 4. Infer tags from rule-based keyword matching
 5. Generate a short summary
-6. Assign a minimal event grouping key
-7. Compute rule-based importance score
-8. Persist results to SQLite
-9. Display the feed in Streamlit
-
-Optional title translation remains available, but it now runs best as a separate backfill step instead of inside the main ingestion loop. This keeps scheduled ingestion stable when the external translation endpoint is slow.
+6. Optionally translate titles through a configurable translation model during ingestion
+7. Assign a minimal event grouping key
+8. Compute rule-based importance score
+9. Persist results to SQLite
+10. Display the feed in Streamlit
 
 ## Project Structure
 
@@ -55,8 +54,7 @@ news/
 ├─ data/
 ├─ scripts/
 │  ├─ init_db.py
-│  ├─ run_pipeline.py
-│  └─ run_translation_backfill.py
+│  └─ run_pipeline.py
 ├─ src/
 │  └─ news_mvp/
 │     ├─ collectors/
@@ -104,12 +102,6 @@ Fetch the latest data, then start the dashboard:
 ```bash
 python scripts/run_pipeline.py
 streamlit run streamlit_app.py
-```
-
-Optionally backfill translated titles in a separate step:
-
-```bash
-python scripts/run_translation_backfill.py
 ```
 
 The dashboard also includes a built-in refresh button for rerunning ingestion from the UI.
@@ -167,12 +159,6 @@ journalctl -u news-pipeline.service -n 100 --no-pager
 查看抓取任务最近 100 行日志。适合排查新闻源抓取失败、翻译失败、数据库写入异常。
 
 ```bash
-journalctl -u news-translation.service -n 100 --no-pager
-```
-
-查看标题补翻任务最近 100 行日志，适合排查外部翻译接口超时或配置错误。
-
-```bash
 journalctl -u news-backup.service -n 50 --no-pager
 ```
 
@@ -212,15 +198,7 @@ source .venv/bin/activate
 python scripts/run_pipeline.py
 ```
 
-手动立即执行一轮抓取、清洗和入库，适合需要马上刷新数据时使用。
-
-```bash
-cd /root/global-market-news
-source .venv/bin/activate
-python scripts/run_translation_backfill.py
-```
-
-手动立即执行一轮标题补翻译，不影响主抓取链路。
+手动立即执行一轮抓取、清洗、翻译和入库，适合需要马上刷新数据时使用。
 
 ```bash
 systemctl start news-backup.service
@@ -342,7 +320,6 @@ The current Streamlit board supports:
 - Reuters and BLS source-limited feed ingestion through Google News RSS search
 - Bloomberg, CNBC, CNN, WSJ, FT, Yahoo Finance, Axios, and MktNews integrations
 - Optional Doubao Seed title translation through Volcengine Ark's OpenAI-compatible endpoint
-- Separate title-translation backfill flow so translation latency does not block scheduled ingestion
 - Rule-based enrichment and lightweight duplicate-story collapsing
 - Mobile-friendly collapsed controls and a refined light research-board UI
 - Incremental feed loading for longer history browsing
@@ -365,7 +342,6 @@ The current Streamlit board supports:
 - Some third-party publisher RSS feeds may change structure or rate-limit intermittently
 - Automatic translation is opt-in and depends on a configured translation API key
 - The current translation mode only applies to titles; summaries remain in the source language
-- Title translation is intentionally kept outside the main scheduled ingestion path so slow model calls do not block feed freshness
 - Historical article retention defaults to the most recent 5000 records
 - The dashboard does not render all retained rows at once; it loads history incrementally to keep Streamlit responsive
 - Duplicate detection is heuristic and story grouping remains lightweight rather than entity-aware
