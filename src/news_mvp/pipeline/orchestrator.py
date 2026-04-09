@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
-import requests
 from uuid import uuid4
 
 from news_mvp.collectors import (
@@ -38,7 +37,6 @@ from news_mvp.pipeline.dedup import build_story_key, fingerprint_text, make_arti
 from news_mvp.pipeline.scoring import score_article
 from news_mvp.pipeline.summarizer import summarize_text
 from news_mvp.pipeline.tagging import infer_tags
-from news_mvp.pipeline.translator import should_translate_title, translate_title, translation_is_configured
 
 
 @dataclass(slots=True)
@@ -83,13 +81,9 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
     collected_count = len(payloads)
     stored_count = 0
     duplicate_count = 0
-    translated_count = 0
     pruned_count = 0
-    translation_cache: dict[str, str | None] = {}
 
     with connection_scope(settings) as connection:
-        pending_translation_budget = settings.translation_max_items_per_run if translation_is_configured(settings) else 0
-
         for payload in payloads:
             normalized_url = normalize_url(payload.url)
             article_id = make_article_id(payload.source, normalized_url)
@@ -155,25 +149,6 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
                     break
 
             title_zh = existing_title_zh
-            if title_zh is None and payload.title in translation_cache:
-                title_zh = translation_cache[payload.title]
-            elif (
-                title_zh is None
-                and pending_translation_budget > 0
-                and should_translate_title(
-                    title=payload.title,
-                    language=payload.language,
-                    existing_translation=existing_title_zh,
-                )
-            ):
-                try:
-                    title_zh = translate_title(payload.title, settings)
-                except requests.RequestException:
-                    title_zh = None
-                translation_cache[payload.title] = title_zh
-                pending_translation_budget -= 1
-                if title_zh:
-                    translated_count += 1
 
             importance = score_article(
                 source=payload.source,
@@ -241,11 +216,7 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
 
     return PipelineRunResult(
         status="success",
-        message=(
-            "Pipeline completed with live source ingestion."
-            if translated_count == 0
-            else f"Pipeline completed with live source ingestion and {translated_count} translated fields."
-        ),
+        message="Pipeline completed with live source ingestion.",
         collected_count=collected_count,
         stored_count=stored_count - pruned_count,
         duplicate_count=duplicate_count,
