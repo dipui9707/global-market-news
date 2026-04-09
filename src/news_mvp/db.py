@@ -19,7 +19,6 @@ def get_connection(settings: Settings) -> sqlite3.Connection:
     ensure_database_parent(database_path)
     connection = sqlite3.connect(database_path, timeout=30)
     connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA journal_mode = WAL")
     connection.execute("PRAGMA foreign_keys = ON")
     connection.execute("PRAGMA busy_timeout = 30000")
     connection.execute("PRAGMA synchronous = NORMAL")
@@ -38,6 +37,7 @@ def connection_scope(settings: Settings) -> Iterator[sqlite3.Connection]:
 
 def initialize_database(settings: Settings, *, normalize_event_map: bool = True) -> None:
     with connection_scope(settings) as connection:
+        connection.execute("PRAGMA journal_mode = WAL")
         cursor = connection.cursor()
         for statement in SCHEMA_STATEMENTS[:5]:
             cursor.execute(statement)

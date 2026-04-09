@@ -25,7 +25,6 @@ from news_mvp.db import (
     fetch_article_by_story_key,
     fetch_article_by_url,
     fetch_event_by_key,
-    initialize_database,
     link_article_event,
     prune_articles,
     replace_article_tags,
@@ -71,7 +70,6 @@ def list_collectors() -> list[str]:
 
 
 def run_pipeline(settings: Settings) -> PipelineRunResult:
-    initialize_database(settings, normalize_event_map=False)
     payloads = []
     for collector in get_collectors():
         payloads.extend(collector.collect(settings))

@@ -27,7 +27,7 @@ The repository now includes a runnable MVP with:
   - rule-based summary generation
   - minimal event grouping
   - rule-based importance scoring
-- Optional title-only translation through a configurable OpenAI-compatible model endpoint, defaulting to Doubao Seed
+- Optional title-only translation through a configurable OpenAI-compatible model endpoint, defaulting to Doubao Seed 2.0 Mini
 - A Streamlit dashboard with a light paper-toned research board style, duplicate-story collapsing, improved search ranking, incremental history loading, and mobile-friendly collapsed controls
 
 The project currently runs on the default local Python 3.14 environment.
@@ -312,6 +312,7 @@ The current Streamlit board supports:
 - Duplicate stories are still stored in SQLite, but the main feed now collapses duplicate rows by default
 - Each article is normalized to a single primary event mapping to avoid duplicate feed rows from repeated event joins
 - SQLite connections use `WAL` mode and a busy timeout to reduce lock contention between the dashboard and scheduled ingestion
+- Main ingestion no longer re-runs database initialization on every pipeline invocation, which reduces local lock contention when the dashboard stays open during manual refreshes
 - The dashboard displays titles, summaries, tags, scores, and links rather than large raw article bodies
 
 ## What Is Implemented
@@ -319,7 +320,7 @@ The current Streamlit board supports:
 - Federal Reserve official feed ingestion
 - Reuters and BLS source-limited feed ingestion through Google News RSS search
 - Bloomberg, CNBC, CNN, WSJ, FT, Yahoo Finance, Axios, and MktNews integrations
-- Optional Doubao Seed title translation through Volcengine Ark's OpenAI-compatible endpoint
+- Optional Doubao Seed 2.0 Mini title translation through Volcengine Ark's OpenAI-compatible endpoint
 - Rule-based enrichment and lightweight duplicate-story collapsing
 - Mobile-friendly collapsed controls and a refined light research-board UI
 - Incremental feed loading for longer history browsing

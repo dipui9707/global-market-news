@@ -181,9 +181,12 @@ def render_dashboard(settings: Settings) -> None:
                     translated = backfill_recent_translations(
                         settings,
                         hours=hours,
-                        limit=max(20, settings.translation_max_items_per_run),
+                        limit=settings.translation_max_items_per_run,
                     )
-                st.success(f"Translation finished: updated {translated} translated fields, prioritizing important flash items.")
+                if translated > 0:
+                    st.success(f"补全翻译完成：已更新 {translated} 条标题翻译。")
+                else:
+                    st.info("当前时间窗口内没有新的未翻译外文标题。")
                 st.rerun()
         with expander_auto_toggle:
             st.markdown("<div class='control-caption'>自动刷新</div>", unsafe_allow_html=True)
