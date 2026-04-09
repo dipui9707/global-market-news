@@ -71,7 +71,7 @@ def list_collectors() -> list[str]:
 
 
 def run_pipeline(settings: Settings) -> PipelineRunResult:
-    initialize_database(settings)
+    initialize_database(settings, normalize_event_map=False)
     payloads = []
     for collector in get_collectors():
         payloads.extend(collector.collect(settings))

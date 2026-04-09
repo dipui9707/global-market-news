@@ -36,14 +36,15 @@ def connection_scope(settings: Settings) -> Iterator[sqlite3.Connection]:
         connection.close()
 
 
-def initialize_database(settings: Settings) -> None:
+def initialize_database(settings: Settings, *, normalize_event_map: bool = True) -> None:
     with connection_scope(settings) as connection:
         cursor = connection.cursor()
         for statement in SCHEMA_STATEMENTS[:5]:
             cursor.execute(statement)
         _ensure_article_schema(connection)
         _ensure_event_schema(connection)
-        _normalize_article_event_map(connection)
+        if normalize_event_map:
+            _normalize_article_event_map(connection)
         for statement in SCHEMA_STATEMENTS[5:]:
             cursor.execute(statement)
         cursor.executemany(
