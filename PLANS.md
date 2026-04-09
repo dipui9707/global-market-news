@@ -45,7 +45,7 @@ Delivered:
 - URL, content fingerprint, and lightweight story-key deduplication
 - Rule-based tagging
 - Rule-based summarization
-- Optional title-only translation through Alibaba Cloud Qwen-MT
+- Optional title-only translation through a configurable OpenAI-compatible translation endpoint
 - Minimal event grouping
 - Rule-based importance scoring
 - Main feedboard UI with filters and side panels
@@ -87,7 +87,7 @@ The repository currently represents:
 - SQLite-backed MVP
 - Live ingestion from official macro sources plus a wider financial media set
 - Rule-based enrichment pipeline
-- Optional Alibaba Cloud Qwen-MT translation for titles only
+- Optional Doubao Seed translation for titles only
 - A light research-board UI focused on latest-feed workflow
 - Search that is more useful for research lookup, with title-first ranking and tag/event support
 - Incremental history browsing through a load-more feed interaction

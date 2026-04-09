@@ -27,7 +27,7 @@ The repository now includes a runnable MVP with:
   - rule-based summary generation
   - minimal event grouping
   - rule-based importance scoring
-- Optional Qwen-MT translation for titles only
+- Optional title-only translation through a configurable OpenAI-compatible model endpoint, defaulting to Doubao Seed
 - A Streamlit dashboard with a light paper-toned research board style, duplicate-story collapsing, improved search ranking, incremental history loading, and mobile-friendly collapsed controls
 
 The project currently runs on the default local Python 3.14 environment.
@@ -41,7 +41,7 @@ The current pipeline is:
 3. Deduplicate by URL, content fingerprint, and lightweight story grouping
 4. Infer tags from rule-based keyword matching
 5. Generate a short summary
-6. Optionally translate titles through Qwen-MT
+6. Optionally translate titles through a configurable translation model
 7. Assign a minimal event grouping key
 8. Compute rule-based importance score
 9. Persist results to SQLite
@@ -269,7 +269,9 @@ Current environment variables:
 - `AUTO_UPDATE_ENABLED`
 - `AUTO_UPDATE_INTERVAL_SECONDS`
 - `TRANSLATION_ENABLED`
-- `DASHSCOPE_API_KEY`
+- `TRANSLATION_API_KEY`
+- `ARK_API_KEY`
+- `DASHSCOPE_API_KEY` (legacy fallback)
 - `TRANSLATION_MODEL`
 - `TRANSLATION_BASE_URL`
 - `TRANSLATION_SOURCE_LANG`
@@ -317,7 +319,7 @@ The current Streamlit board supports:
 - Federal Reserve official feed ingestion
 - Reuters and BLS source-limited feed ingestion through Google News RSS search
 - Bloomberg, CNBC, CNN, WSJ, FT, Yahoo Finance, Axios, and MktNews integrations
-- Optional Alibaba Cloud Qwen-MT title translation
+- Optional Doubao Seed title translation through Volcengine Ark's OpenAI-compatible endpoint
 - Rule-based enrichment and lightweight duplicate-story collapsing
 - Mobile-friendly collapsed controls and a refined light research-board UI
 - Incremental feed loading for longer history browsing
@@ -338,7 +340,7 @@ The current Streamlit board supports:
 
 - Reuters and BLS currently depend on Google News RSS as a transport layer
 - Some third-party publisher RSS feeds may change structure or rate-limit intermittently
-- Automatic translation is opt-in and depends on a configured DashScope API key
+- Automatic translation is opt-in and depends on a configured translation API key
 - The current translation mode only applies to titles; summaries remain in the source language
 - Historical article retention defaults to the most recent 5000 records
 - The dashboard does not render all retained rows at once; it loads history incrementally to keep Streamlit responsive

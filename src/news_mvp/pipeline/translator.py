@@ -13,7 +13,7 @@ HIDDEN_SOURCES = ("联合早报",)
 
 
 def translation_is_configured(settings: Settings) -> bool:
-    return settings.translation_enabled and bool(settings.dashscope_api_key)
+    return settings.translation_enabled and bool(settings.translation_api_key)
 
 
 def should_translate_text(*, text: str | None, language: str | None, existing_translation: str | None) -> bool:
@@ -37,20 +37,28 @@ def translate_text(text: str, settings: Settings) -> str | None:
     if not translation_is_configured(settings):
         return None
 
+    model_name = settings.translation_endpoint_id or settings.translation_model
     response = requests.post(
         f"{settings.translation_base_url.rstrip('/')}/chat/completions",
         headers={
-            "Authorization": f"Bearer {settings.dashscope_api_key}",
+            "Authorization": f"Bearer {settings.translation_api_key}",
             "Content-Type": "application/json",
         },
         json={
-            "model": settings.translation_model,
-            "messages": [{"role": "user", "content": text}],
-            "translation_options": {
-                "source_lang": settings.translation_source_lang,
-                "target_lang": settings.translation_target_lang,
-                "domains": "finance",
-            },
+            "model": model_name,
+            "temperature": 0.1,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "你是专业财经新闻翻译助手。"
+                        "请把用户提供的一条新闻标题翻译成简洁、准确、自然的简体中文财经标题。"
+                        "保留公司名、机构名、缩写、数字、货币、百分比、合约月份和专有名词。"
+                        "不要补充解释，不要扩写，不要输出引号，只输出翻译结果。"
+                    ),
+                },
+                {"role": "user", "content": text},
+            ],
         },
         timeout=30,
     )
@@ -60,7 +68,15 @@ def translate_text(text: str, settings: Settings) -> str | None:
     if not choices:
         return None
     message = choices[0].get("message") or {}
-    content = (message.get("content") or "").strip()
+    raw_content = message.get("content")
+    if isinstance(raw_content, list):
+        content = "".join(
+            part.get("text", "")
+            for part in raw_content
+            if isinstance(part, dict)
+        ).strip()
+    else:
+        content = (raw_content or "").strip()
     return content or None
 
 

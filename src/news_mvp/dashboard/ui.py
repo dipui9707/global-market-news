@@ -186,9 +186,9 @@ def render_dashboard(settings: Settings) -> None:
                 st.success(f"Translation finished: updated {translated} translated fields, prioritizing important flash items.")
                 st.rerun()
         with expander_auto_toggle:
-            st.markdown("<div class='control-caption'>自动更新</div>", unsafe_allow_html=True)
+            st.markdown("<div class='control-caption'>自动刷新</div>", unsafe_allow_html=True)
             auto_enabled = st.toggle(
-                "自动更新",
+                "自动刷新",
                 value=bool(st.session_state.get("auto_update_enabled", settings.auto_update_enabled)),
                 help="打开后页面会按设定间隔自动刷新展示内容，抓取由服务器定时任务负责",
             )

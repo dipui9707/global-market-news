@@ -47,7 +47,7 @@ This repository is developed as a staged MVP for a financial intelligence aggreg
 
 - The default local runtime is Python 3.14.
 - Do not reintroduce temporary Python side environments or translation stacks unless explicitly requested.
-- Optional DashScope/Qwen-MT translation support is acceptable when explicitly requested and must remain configurable rather than mandatory.
+- Optional title-only translation support through configurable external model APIs is acceptable when explicitly requested and must remain configurable rather than mandatory.
 - Keep `.env.example` aligned with the actual supported runtime options.
 
 ## Delivery Rules
