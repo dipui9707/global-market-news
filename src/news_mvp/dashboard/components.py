@@ -6,7 +6,7 @@ from html import escape
 import streamlit as st
 
 from news_mvp.collectors.base import sanitize_text
-from news_mvp.dashboard.queries import ArticleCard, FlashItem, SourceStatus, TopicPulse
+from news_mvp.dashboard.queries import ArticleCard, FlashItem, MktNewsLiveStatus, SourceStatus, TopicPulse
 
 BJ_TZ = timezone(timedelta(hours=8))
 
@@ -125,6 +125,36 @@ def render_source_status_panel(items: list[SourceStatus]) -> None:
     )
 
 
+def render_mktnews_live_status(status: MktNewsLiveStatus) -> None:
+    if not status.cache_exists:
+        html = """
+        <div class="section-card mktnews-live-card">
+            <div class="section-title">MktNews Live Cache</div>
+            <div class="mono-note">未检测到本地实时缓存文件。</div>
+        </div>
+        """
+        st.markdown(html, unsafe_allow_html=True)
+        return
+
+    cache_updated = _format_optional_bj_time(status.cache_updated_at)
+    latest_item = _format_optional_bj_time(status.latest_item_time)
+    html = f"""
+    <div class="section-card mktnews-live-card">
+        <div class="section-title">MktNews Live Cache</div>
+        <div class="mktnews-live-row">
+            <span><span class="side-dot {escape(status.status)}"></span>缓存状态</span>
+            <span class="side-count">{escape(status.status)}</span>
+        </div>
+        <div class="mono-note">
+            缓存刷新：{escape(cache_updated)}<br/>
+            最新快讯：{escape(latest_item)}<br/>
+            缓存条数：{status.item_count}
+        </div>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+
 def render_topic_panel(items: list[TopicPulse]) -> None:
     rows = "".join(
         f"<span class='topic-chip'>{escape(item.topic_name)} <strong>{item.article_count}</strong></span>"
@@ -190,3 +220,13 @@ def _format_source_time(value: str | None) -> str:
     except ValueError:
         return "无更新"
     return dt.strftime("%H:%M")
+
+
+def _format_optional_bj_time(value: str | None) -> str:
+    if not value:
+        return "无更新"
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(BJ_TZ)
+    except ValueError:
+        return "无更新"
+    return dt.strftime("%m-%d %H:%M:%S")

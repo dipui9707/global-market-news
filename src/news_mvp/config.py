@@ -32,6 +32,8 @@ class Settings:
     translation_target_lang: str
     translation_max_items_per_run: int
     story_dedup_lookback_hours: int
+    mktnews_live_cache_path: str
+    mktnews_live_cache_max_items: int
 
     @property
     def database_path(self) -> Path:
@@ -67,4 +69,6 @@ def get_settings() -> Settings:
         translation_target_lang=os.getenv("TRANSLATION_TARGET_LANG", "Chinese"),
         translation_max_items_per_run=int(os.getenv("TRANSLATION_MAX_ITEMS_PER_RUN", "40")),
         story_dedup_lookback_hours=int(os.getenv("STORY_DEDUP_LOOKBACK_HOURS", "36")),
+        mktnews_live_cache_path=os.getenv("MKTNEWS_LIVE_CACHE_PATH", "data/mktnews_live_en.json"),
+        mktnews_live_cache_max_items=int(os.getenv("MKTNEWS_LIVE_CACHE_MAX_ITEMS", "500")),
     )

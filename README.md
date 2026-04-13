@@ -19,7 +19,7 @@ The repository now includes a runnable MVP with:
   - FT RSS
   - Yahoo Finance RSS
   - Axios RSS
-  - MktNews static JSON flash feed
+  - MktNews flash feed, with optional websocket-backed live cache bridge for fresher updates
 - Minimal processing pipeline for:
   - text cleaning
   - URL, content, and lightweight story-key deduplication
@@ -55,6 +55,7 @@ news/
 ├─ scripts/
 │  ├─ init_db.py
 │  └─ run_pipeline.py
+│  └─ run_mktnews_live_bridge.py
 ├─ src/
 │  └─ news_mvp/
 │     ├─ collectors/
@@ -107,6 +108,24 @@ streamlit run streamlit_app.py
 The dashboard also includes a built-in refresh button for rerunning ingestion from the UI.
 
 The current dashboard defaults to a larger initial feed slice and supports incremental loading for deeper history browsing.
+
+## MktNews Live Bridge
+
+`MktNews` currently exposes a public REST endpoint, but the latest public snapshot can lag behind the live website feed. The repository now includes an optional bridge script that listens to the public `MktNews` websocket feed and writes a local cache file for the collector to read first.
+
+Run the bridge locally or on the server:
+
+```bash
+python scripts/run_mktnews_live_bridge.py
+```
+
+Useful test mode:
+
+```bash
+python scripts/run_mktnews_live_bridge.py --once --bootstrap-limit 20
+```
+
+The collector reads `data/mktnews_live_en.json` first and then falls back to the public REST endpoint. This keeps the MVP on stable public endpoints while giving `MktNews` a path to fresher data when the websocket bridge is enabled.
 
 ## Server Operations
 

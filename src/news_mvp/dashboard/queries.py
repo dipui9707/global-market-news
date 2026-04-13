@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+import json
+from pathlib import Path
 from typing import Any
 
-from news_mvp.config import Settings
+from news_mvp.config import ROOT_DIR, Settings
 from news_mvp.db import connection_scope, fetch_scalar
 
 HIDDEN_SOURCES = ("联合早报", "SCMP")
@@ -60,6 +62,15 @@ class FlashItem:
     source: str
     url: str
     importance_score: float
+
+
+@dataclass(slots=True)
+class MktNewsLiveStatus:
+    cache_exists: bool
+    item_count: int
+    cache_updated_at: str | None
+    latest_item_time: str | None
+    status: str
 
 
 def _hidden_source_placeholders() -> str:
@@ -393,6 +404,51 @@ def load_flash_items(settings: Settings, hours: int, limit: int = 5) -> list[Fla
         )
         for row in unique_rows
     ]
+
+
+def load_mktnews_live_status(settings: Settings) -> MktNewsLiveStatus:
+    cache_path = ROOT_DIR / settings.mktnews_live_cache_path
+    if not cache_path.exists():
+        return MktNewsLiveStatus(
+            cache_exists=False,
+            item_count=0,
+            cache_updated_at=None,
+            latest_item_time=None,
+            status="idle",
+        )
+
+    try:
+        payload = json.loads(cache_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return MktNewsLiveStatus(
+            cache_exists=True,
+            item_count=0,
+            cache_updated_at=None,
+            latest_item_time=None,
+            status="idle",
+        )
+
+    items = payload.get("items") if isinstance(payload, dict) else None
+    normalized_items = [entry for entry in items or [] if isinstance(entry, dict)]
+    cache_updated_at = payload.get("updated_at") if isinstance(payload, dict) else None
+    latest_item_time = normalized_items[0].get("time") if normalized_items else None
+
+    status = "idle"
+    if cache_updated_at:
+        try:
+            updated_dt = datetime.fromisoformat(cache_updated_at.replace("Z", "+00:00")).astimezone(UTC)
+            age_minutes = (datetime.now(UTC) - updated_dt).total_seconds() / 60
+            status = "online" if age_minutes <= 10 else "lagging" if age_minutes <= 60 else "idle"
+        except ValueError:
+            status = "idle"
+
+    return MktNewsLiveStatus(
+        cache_exists=True,
+        item_count=len(normalized_items),
+        cache_updated_at=cache_updated_at,
+        latest_item_time=latest_item_time,
+        status=status,
+    )
 
 
 def _derive_source_status(latest_published_at: str | None, hours: int, article_count: int) -> str:

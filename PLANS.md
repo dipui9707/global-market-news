@@ -96,6 +96,7 @@ The repository currently represents:
 - Feed query protections against repeated rows caused by duplicate event joins
 - Reduced SQLite lock contention during dashboard startup and scheduled ingestion overlap
 - Reduced local manual-refresh lock contention by avoiding repeated database initialization work inside every pipeline run
+- Optional websocket-backed `MktNews` live cache bridge, with collector fallback to the public REST endpoint
 - A working ECS deployment path with `systemd`, `nginx`, scheduled ingestion, and daily backup
 
 ## Next Suggested Work

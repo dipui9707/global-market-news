@@ -169,6 +169,22 @@ def get_dashboard_css() -> str:
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 10px 24px rgba(0,0,0,0.04);
     }
 
+    .mktnews-live-card {
+        border-color: color-mix(in srgb, #4f6ea9 16%, var(--line));
+        background:
+            linear-gradient(180deg, color-mix(in srgb, #4f6ea9 6%, white 94%), color-mix(in srgb, var(--panel) 96%, white 4%));
+    }
+
+    .mktnews-live-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 0.45rem;
+        color: color-mix(in srgb, var(--text) 92%, var(--muted));
+        font-size: 0.82rem;
+    }
+
     .section-title {
         color: var(--gold);
         font-size: 0.92rem;

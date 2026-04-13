@@ -10,6 +10,7 @@ from news_mvp.dashboard.components import (
     render_feed_item,
     render_flash_panel,
     render_header,
+    render_mktnews_live_status,
     render_notes_panel,
     render_stat_panel,
     render_source_status_panel,
@@ -20,6 +21,7 @@ from news_mvp.dashboard.queries import (
     load_dashboard_stats,
     load_filter_options,
     load_flash_items,
+    load_mktnews_live_status,
     load_source_status,
     load_topic_pulse,
     SourceStatus,
@@ -233,6 +235,7 @@ def render_dashboard(settings: Settings) -> None:
             source_status.append(SourceStatus(source=source_name, article_count=0, latest_published_at=None, status="idle"))
         else:
             source_status.append(row)
+    mktnews_live_status = load_mktnews_live_status(settings)
     topic_pulse = load_topic_pulse(settings, hours=hours, limit=8)
     articles = load_article_feed(
         settings,
@@ -264,6 +267,7 @@ def render_dashboard(settings: Settings) -> None:
             st.info("当前筛选条件下暂无结果，请调整来源、主题、区域或时间窗口。")
 
     with side_col:
+        render_mktnews_live_status(mktnews_live_status)
         render_source_status_panel(source_status)
         render_topic_panel(topic_pulse)
         render_notes_panel()

@@ -42,7 +42,8 @@ class WSJCollector(MultiFeedRSSCollector):
     name = "wsj"
     source_name = "WSJ"
     feed_urls = (
-        "https://news.google.com/rss/search?q=site%3Awsj.com%20(markets%20OR%20economy%20OR%20fed%20OR%20inflation)%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
+        "https://news.google.com/rss/search?q=site%3Awsj.com%20(markets%20OR%20economy%20OR%20business%20OR%20stocks%20OR%20oil%20OR%20tariffs)%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
+        "https://news.google.com/rss/search?q=site%3Awsj.com%20(iran%20OR%20oil%20OR%20trade%20OR%20stocks%20OR%20inflation)%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen",
     )
     region = "United States"
 
@@ -57,7 +58,10 @@ class FTCollector(MultiFeedRSSCollector):
 class YahooFinanceCollector(MultiFeedRSSCollector):
     name = "yahoo_finance"
     source_name = "Yahoo Finance"
-    feed_urls = ("https://finance.yahoo.com/news/rssindex",)
+    feed_urls = (
+        "https://news.google.com/rss/search?q=site%3Afinance.yahoo.com%20(markets%20OR%20stocks%20OR%20economy%20OR%20inflation%20OR%20fed)%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
+        "https://news.google.com/rss/search?q=site%3Afinance.yahoo.com%20(oil%20OR%20gold%20OR%20bitcoin%20OR%20dollar%20OR%20treasury)%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
+    )
     region = "Global"
 
 
