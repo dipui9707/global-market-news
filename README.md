@@ -27,7 +27,7 @@ The repository now includes a runnable MVP with:
   - rule-based summary generation
   - minimal event grouping
   - rule-based importance scoring
-- Optional title-only translation through a configurable OpenAI-compatible model endpoint, defaulting to Doubao Seed 2.0 Mini
+- Optional title-only translation through a configurable OpenAI-compatible model endpoint, defaulting to Qwen MT Flash
 - A Streamlit dashboard with a light paper-toned research board style, duplicate-story collapsing, improved search ranking, incremental history loading, and mobile-friendly collapsed controls
 
 The project currently runs on the default local Python 3.14 environment.
@@ -339,7 +339,7 @@ The current Streamlit board supports:
 - Federal Reserve official feed ingestion
 - Reuters and BLS source-limited feed ingestion through Google News RSS search
 - Bloomberg, CNBC, CNN, WSJ, FT, Yahoo Finance, Axios, and MktNews integrations
-- Optional Doubao Seed 2.0 Mini title translation through Volcengine Ark's OpenAI-compatible endpoint
+- Optional Qwen MT Flash title translation through Alibaba DashScope's OpenAI-compatible endpoint
 - Rule-based enrichment and lightweight duplicate-story collapsing
 - Mobile-friendly collapsed controls and a refined light research-board UI
 - Incremental feed loading for longer history browsing

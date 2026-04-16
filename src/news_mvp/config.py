@@ -62,9 +62,9 @@ def get_settings() -> Settings:
             or os.getenv("DASHSCOPE_API_KEY")
             or None
         ),
-        translation_model=os.getenv("TRANSLATION_MODEL", "doubao-seed-2.0-pro"),
+        translation_model=os.getenv("TRANSLATION_MODEL", "qwen-mt-flash"),
         translation_endpoint_id=os.getenv("TRANSLATION_ENDPOINT_ID") or None,
-        translation_base_url=os.getenv("TRANSLATION_BASE_URL", "https://ark.cn-beijing.volces.com/api/v3"),
+        translation_base_url=os.getenv("TRANSLATION_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"),
         translation_source_lang=os.getenv("TRANSLATION_SOURCE_LANG", "auto"),
         translation_target_lang=os.getenv("TRANSLATION_TARGET_LANG", "Chinese"),
         translation_max_items_per_run=int(os.getenv("TRANSLATION_MAX_ITEMS_PER_RUN", "40")),

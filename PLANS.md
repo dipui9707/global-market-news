@@ -87,7 +87,7 @@ The repository currently represents:
 - SQLite-backed MVP
 - Live ingestion from official macro sources plus a wider financial media set
 - Rule-based enrichment pipeline
-- Optional Doubao Seed 2.0 Mini translation for titles only
+- Optional Qwen MT Flash translation for titles only
 - A light research-board UI focused on latest-feed workflow
 - Search that is more useful for research lookup, with title-first ranking and tag/event support
 - Incremental history browsing through a load-more feed interaction
