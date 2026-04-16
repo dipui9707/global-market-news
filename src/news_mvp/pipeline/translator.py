@@ -38,13 +38,22 @@ def translate_text(text: str, settings: Settings) -> str | None:
         return None
 
     model_name = settings.translation_endpoint_id or settings.translation_model
-    response = requests.post(
-        f"{settings.translation_base_url.rstrip('/')}/chat/completions",
-        headers={
-            "Authorization": f"Bearer {settings.translation_api_key}",
-            "Content-Type": "application/json",
-        },
-        json={
+    if settings.translation_model.startswith("qwen-mt-"):
+        payload = {
+            "model": model_name,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": text,
+                }
+            ],
+            "translation_options": {
+                "source_lang": settings.translation_source_lang,
+                "target_lang": settings.translation_target_lang,
+            },
+        }
+    else:
+        payload = {
             "model": model_name,
             "temperature": 0.1,
             "messages": [
@@ -59,7 +68,15 @@ def translate_text(text: str, settings: Settings) -> str | None:
                 },
                 {"role": "user", "content": text},
             ],
+        }
+
+    response = requests.post(
+        f"{settings.translation_base_url.rstrip('/')}/chat/completions",
+        headers={
+            "Authorization": f"Bearer {settings.translation_api_key}",
+            "Content-Type": "application/json",
         },
+        json=payload,
         timeout=30,
     )
     response.raise_for_status()
