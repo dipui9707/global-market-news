@@ -1,8 +1,15 @@
 __pycache__/
 *.py[cod]
+*.log
 
 .env
 
 data/news_mvp.db
+data/mktnews_live_*.json
+
+src/*.egg-info/
+
+tmp_*/
+yuan.py
 
 线上运维.txt

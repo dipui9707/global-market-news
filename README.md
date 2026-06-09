@@ -27,8 +27,9 @@ The repository now includes a runnable MVP with:
   - rule-based summary generation
   - minimal event grouping
   - rule-based importance scoring
-- Optional title-only translation through a configurable OpenAI-compatible model endpoint, defaulting to Qwen MT Flash
+- Optional title-only translation through a configurable OpenAI-compatible model endpoint, defaulting to Qwen MT Flash through Alibaba DashScope
 - A Streamlit dashboard with a light paper-toned research board style, duplicate-story collapsing, improved search ranking, incremental history loading, and mobile-friendly collapsed controls
+- The tracked MVP scope is the Python + Streamlit dashboard only; the abandoned Android/local-model experiment is not part of the current repository scope
 
 The project currently runs on the default local Python 3.14 environment.
 
@@ -340,14 +341,18 @@ The current Streamlit board supports:
 - Reuters and BLS source-limited feed ingestion through Google News RSS search
 - Bloomberg, CNBC, CNN, WSJ, FT, Yahoo Finance, Axios, and MktNews integrations
 - Optional Qwen MT Flash title translation through Alibaba DashScope's OpenAI-compatible endpoint
+- `.env.example` is aligned to `qwen-mt-flash` as the current default translation model
 - Rule-based enrichment and lightweight duplicate-story collapsing
 - Mobile-friendly collapsed controls and a refined light research-board UI
 - Incremental feed loading for longer history browsing
 - Search that prioritizes title matches and also supports tag and event lookups
 - ECS deployment workflow with `systemd`, `nginx`, recurring pipeline runs, and SQLite backup
+- Repository cleanup now keeps runtime secrets, SQLite data, cache files, logs, and temporary reverse-engineering artifacts out of Git tracking
 
 ## What Is Not Implemented Yet
 
+- Android/native mobile client
+- On-device local model translation
 - Direct Reuters site parsing
 - Direct BLS source feed parsing in the current environment
 - Strong cross-source event clustering

@@ -88,6 +88,8 @@ The repository currently represents:
 - Live ingestion from official macro sources plus a wider financial media set
 - Rule-based enrichment pipeline
 - Optional Qwen MT Flash translation for titles only
+- `.env.example` and default runtime assumptions are aligned to `qwen-mt-flash`
+- Current MVP scope is Python + Streamlit only; Android/native mobile and on-device local model experiments are out of scope
 - A light research-board UI focused on latest-feed workflow
 - Search that is more useful for research lookup, with title-first ranking and tag/event support
 - Incremental history browsing through a load-more feed interaction
