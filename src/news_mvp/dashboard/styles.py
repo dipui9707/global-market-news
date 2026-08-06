@@ -7,9 +7,9 @@ def get_dashboard_css() -> str:
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;600;700;900&display=swap');
 
     :root {
-        --bg: #0b0d11;
+        --bg: #12161e;
         --panel: rgba(20, 24, 31, 0.72);
-        --panel-solid: #151a22;
+        --panel-solid: #1a2029;
         --panel-2: rgba(26, 31, 40, 0.55);
         --line: rgba(255, 255, 255, 0.075);
         --line-strong: rgba(201, 168, 106, 0.28);
@@ -27,7 +27,7 @@ def get_dashboard_css() -> str:
         background:
             radial-gradient(ellipse 1100px 520px at 12% -8%, rgba(201, 168, 106, 0.07), transparent 62%),
             radial-gradient(ellipse 900px 460px at 96% 0%, rgba(96, 120, 180, 0.05), transparent 58%),
-            linear-gradient(180deg, #0b0d11 0%, #0a0c10 46%, #090b0e 100%);
+            linear-gradient(180deg, #12161e 0%, #10141b 46%, #0e1218 100%);
         color: var(--text);
         font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
     }
