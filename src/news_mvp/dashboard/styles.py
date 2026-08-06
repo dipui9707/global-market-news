@@ -147,18 +147,6 @@ def get_dashboard_css() -> str:
         letter-spacing: 0.02em;
     }
 
-    .status-ribbon {
-        color: var(--green);
-        font-size: 0.88rem;
-        padding: 0.2rem 0 0.55rem;
-        letter-spacing: 0.01em;
-    }
-
-    div[data-testid="stMarkdown"]:has(.status-ribbon) {
-        margin-bottom: 0 !important;
-        padding-bottom: 0 !important;
-    }
-
     .section-card {
         background:
             linear-gradient(180deg, color-mix(in srgb, var(--panel) 98%, white 2%), color-mix(in srgb, var(--panel-2) 98%, transparent));
@@ -167,22 +155,6 @@ def get_dashboard_css() -> str:
         padding: 0.9rem;
         margin-bottom: 0.9rem;
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 10px 24px rgba(0,0,0,0.04);
-    }
-
-    .mktnews-live-card {
-        border-color: color-mix(in srgb, #4f6ea9 16%, var(--line));
-        background:
-            linear-gradient(180deg, color-mix(in srgb, #4f6ea9 6%, white 94%), color-mix(in srgb, var(--panel) 96%, white 4%));
-    }
-
-    .mktnews-live-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 0.6rem;
-        margin-bottom: 0.45rem;
-        color: color-mix(in srgb, var(--text) 92%, var(--muted));
-        font-size: 0.82rem;
     }
 
     .section-title {
@@ -719,11 +691,6 @@ def get_dashboard_css() -> str:
         .market-clock {
             font-size: 0.82rem;
             letter-spacing: 0.03em;
-        }
-
-        .status-ribbon {
-            font-size: 0.82rem;
-            padding-top: 0.05rem;
         }
     }
 

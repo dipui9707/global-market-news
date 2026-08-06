@@ -2,27 +2,30 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta, timezone
 from html import escape
+from zoneinfo import ZoneInfo
 
 import streamlit as st
 
 from news_mvp.collectors.base import sanitize_text
-from news_mvp.dashboard.queries import ArticleCard, FlashItem, MktNewsLiveStatus, SourceStatus, TopicPulse
+from news_mvp.dashboard.queries import ArticleCard, FlashItem, SourceStatus, TopicPulse
 
 BJ_TZ = timezone(timedelta(hours=8))
+NY_TZ = ZoneInfo("America/New_York")
+LON_TZ = ZoneInfo("Europe/London")
 
 
 def render_header() -> None:
     now = datetime.now(UTC)
     bj = now.astimezone(BJ_TZ).strftime("%H:%M")
-    ny = now.strftime("%H:%M")
-    london = (now.hour + 0) % 24
+    ny = now.astimezone(NY_TZ).strftime("%H:%M")
+    lon = now.astimezone(LON_TZ).strftime("%H:%M")
     html = f"""
     <div class="hero-bar">
         <div class="hero-left">
             <div class="brand-title">环球财经</div>
             <div class="brand-sub">Global Market News</div>
         </div>
-        <div class="market-clock">北京 {bj} &nbsp;&nbsp;•&nbsp;&nbsp; NY {ny} &nbsp;&nbsp;•&nbsp;&nbsp; LON {london:02d}:00</div>
+        <div class="market-clock">北京 {bj} &nbsp;&nbsp;•&nbsp;&nbsp; NY {ny} &nbsp;&nbsp;•&nbsp;&nbsp; LON {lon}</div>
     </div>
     """
     st.markdown(html, unsafe_allow_html=True)
@@ -125,36 +128,6 @@ def render_source_status_panel(items: list[SourceStatus]) -> None:
     )
 
 
-def render_mktnews_live_status(status: MktNewsLiveStatus) -> None:
-    if not status.cache_exists:
-        html = """
-        <div class="section-card mktnews-live-card">
-            <div class="section-title">MktNews Live Cache</div>
-            <div class="mono-note">未检测到本地实时缓存文件。</div>
-        </div>
-        """
-        st.markdown(html, unsafe_allow_html=True)
-        return
-
-    cache_updated = _format_optional_bj_time(status.cache_updated_at)
-    latest_item = _format_optional_bj_time(status.latest_item_time)
-    html = f"""
-    <div class="section-card mktnews-live-card">
-        <div class="section-title">MktNews Live Cache</div>
-        <div class="mktnews-live-row">
-            <span><span class="side-dot {escape(status.status)}"></span>缓存状态</span>
-            <span class="side-count">{escape(status.status)}</span>
-        </div>
-        <div class="mono-note">
-            缓存刷新：{escape(cache_updated)}<br/>
-            最新快讯：{escape(latest_item)}<br/>
-            缓存条数：{status.item_count}
-        </div>
-    </div>
-    """
-    st.markdown(html, unsafe_allow_html=True)
-
-
 def render_topic_panel(items: list[TopicPulse]) -> None:
     rows = "".join(
         f"<span class='topic-chip'>{escape(item.topic_name)} <strong>{item.article_count}</strong></span>"
@@ -179,10 +152,9 @@ def render_notes_panel() -> None:
             <div class="mono-note">
                 • 当前以稳定公开 feed 为优先抓取方式。<br/>
                 • 看板为研究导向信息流，不展示大段原文全文。<br/>
-                • 配置百炼翻译后可自动生成中文标题。<br/>
                 • 主 feed 默认折叠重复报道，仅展示每组代表新闻。<br/>
                 • 评分、标签、事件归类仍为规则版 MVP。<br/>
-                • 建议配合右上刷新按钮进行最新数据拉取。
+                • 数据更新需手动点击「重新抓取」按钮，或由服务器定时任务触发。
             </div>
         </div>
         """,
@@ -222,11 +194,4 @@ def _format_source_time(value: str | None) -> str:
     return dt.strftime("%H:%M")
 
 
-def _format_optional_bj_time(value: str | None) -> str:
-    if not value:
-        return "无更新"
-    try:
-        dt = datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(BJ_TZ)
-    except ValueError:
-        return "无更新"
-    return dt.strftime("%m-%d %H:%M:%S")
+
