@@ -38,7 +38,7 @@ def get_dashboard_css() -> str:
     }
 
     .block-container {
-        padding-top: 210px;
+        padding-top: 185px;
         padding-bottom: 1.2rem;
         max-width: 1400px;
     }
@@ -599,14 +599,14 @@ def get_dashboard_css() -> str:
         justify-content: flex-end;
     }
 
-    details[data-testid="stExpander"] {
+    [data-testid="stExpander"] {
         background: linear-gradient(180deg, rgba(22, 27, 35, 0.92), rgba(16, 20, 27, 0.88));
         border: 1px solid rgba(201, 168, 106, 0.16);
         border-radius: 0 0 16px 16px;
         margin-bottom: 0;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
         position: fixed;
-        top: 148px;
+        top: 120px;
         left: 50%;
         transform: translateX(-50%);
         width: 100%;
@@ -617,7 +617,7 @@ def get_dashboard_css() -> str:
         scrollbar-width: thin;
     }
 
-    details[data-testid="stExpander"] summary {
+    [data-testid="stExpander"] summary {
         padding: 0.82rem 0.95rem;
         color: var(--text);
         font-weight: 500;
@@ -628,24 +628,24 @@ def get_dashboard_css() -> str:
         background: linear-gradient(180deg, rgba(22, 27, 35, 0.97), rgba(16, 20, 27, 0.92));
     }
 
-    details[data-testid="stExpander"] summary:hover {
+    [data-testid="stExpander"] summary:hover {
         background: rgba(201, 168, 106, 0.06);
     }
 
-    details[data-testid="stExpander"] > div[role="region"] {
+    [data-testid="stExpander"] [data-testid="stExpanderDetails"] {
         padding: 0 0.95rem 0.85rem;
     }
 
     /* ── 响应式 ─────────────────────────────────── */
     @media (max-width: 900px) {
         .block-container {
-            padding-top: 190px;
+            padding-top: 205px;
             padding-left: 0.85rem;
             padding-right: 0.85rem;
         }
 
-        details[data-testid="stExpander"] {
-            top: 124px;
+        [data-testid="stExpander"] {
+            top: 144px;
         }
 
         .hero-bar {
