@@ -32,13 +32,18 @@ def get_dashboard_css() -> str:
         font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
     }
 
+    /* 隐藏 Streamlit 顶部框架（菜单/Deploy/状态栏） */
+    header[data-testid="stHeader"] {
+        display: none !important;
+    }
+
     .block-container {
-        padding-top: 1.6rem;
+        padding-top: 0.85rem;
         padding-bottom: 1.2rem;
         max-width: 1400px;
     }
 
-    /* ── Hero 顶栏 ─────────────────────────────── */
+    /* ── Hero 固定顶栏 ────────────────────────── */
     .hero-bar {
         display: flex;
         justify-content: space-between;
@@ -46,18 +51,22 @@ def get_dashboard_css() -> str:
         gap: 1rem;
         background:
             linear-gradient(135deg, rgba(201, 168, 106, 0.09), transparent 46%),
-            linear-gradient(180deg, rgba(23, 28, 36, 0.9), rgba(17, 21, 28, 0.72));
+            linear-gradient(180deg, rgba(20, 25, 33, 0.97), rgba(15, 19, 26, 0.94));
         border: 1px solid var(--line);
         border-top: 1px solid rgba(201, 168, 106, 0.35);
         border-radius: 18px;
         padding: 1.15rem 1.25rem;
         margin-bottom: 0.85rem;
         min-height: 108px;
-        margin-top: 0.15rem;
+        margin-top: 0;
         box-shadow:
             0 24px 48px rgba(0, 0, 0, 0.42),
             inset 0 1px 0 rgba(255, 255, 255, 0.045);
-        position: relative;
+        position: sticky;
+        top: 0;
+        z-index: 999;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         overflow: hidden;
     }
 
