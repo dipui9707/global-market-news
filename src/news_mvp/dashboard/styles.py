@@ -38,12 +38,12 @@ def get_dashboard_css() -> str:
     }
 
     .block-container {
-        padding-top: 0.85rem;
+        padding-top: 150px;
         padding-bottom: 1.2rem;
         max-width: 1400px;
     }
 
-    /* ── Hero 固定顶栏 ────────────────────────── */
+    /* ── Hero 固定顶栏（fixed，不随滚动） ──────── */
     .hero-bar {
         display: flex;
         justify-content: space-between;
@@ -54,16 +54,20 @@ def get_dashboard_css() -> str:
             linear-gradient(180deg, rgba(20, 25, 33, 0.97), rgba(15, 19, 26, 0.94));
         border: 1px solid var(--line);
         border-top: 1px solid rgba(201, 168, 106, 0.35);
-        border-radius: 18px;
+        border-radius: 0 0 18px 18px;
         padding: 1.15rem 1.25rem;
-        margin-bottom: 0.85rem;
+        margin-bottom: 0;
         min-height: 108px;
         margin-top: 0;
         box-shadow:
             0 24px 48px rgba(0, 0, 0, 0.42),
             inset 0 1px 0 rgba(255, 255, 255, 0.045);
-        position: sticky;
+        position: fixed;
         top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 1400px;
         z-index: 999;
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
@@ -111,7 +115,7 @@ def get_dashboard_css() -> str:
     }
 
     .market-clock {
-        color: var(--muted);
+        color: var(--gold-bright);
         font-family: "Cormorant Garamond", Georgia, serif;
         font-size: 0.94rem;
         letter-spacing: 0.1em;
@@ -622,7 +626,7 @@ def get_dashboard_css() -> str:
     /* ── 响应式 ─────────────────────────────────── */
     @media (max-width: 900px) {
         .block-container {
-            padding-top: 1rem;
+            padding-top: 195px;
             padding-left: 0.85rem;
             padding-right: 0.85rem;
         }
@@ -630,7 +634,7 @@ def get_dashboard_css() -> str:
         .hero-bar {
             min-height: auto;
             padding: 0.95rem 0.9rem;
-            margin-bottom: 0.6rem;
+            margin-bottom: 0;
             flex-direction: column;
             align-items: flex-start;
         }
