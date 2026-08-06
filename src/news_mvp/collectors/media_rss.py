@@ -144,3 +144,59 @@ class ZaobaoCollector(MultiFeedRSSCollector):
                     return items
 
         return items
+
+
+class OilPriceCollector(MultiFeedRSSCollector):
+    name = "oilprice"
+    source_name = "OilPrice.com"
+    feed_urls = ("https://oilprice.com/rss/main",)
+    region = "Global"
+
+
+class MiningDotComCollector(MultiFeedRSSCollector):
+    name = "mining"
+    source_name = "Mining.com"
+    feed_urls = ("https://www.mining.com/feed/",)
+    region = "Global"
+
+
+class WesternProducerCollector(MultiFeedRSSCollector):
+    name = "western_producer"
+    source_name = "The Western Producer"
+    feed_urls = ("https://www.producer.com/feed/",)
+    region = "Global"
+
+
+class MarketWatchCollector(MultiFeedRSSCollector):
+    name = "marketwatch"
+    source_name = "MarketWatch"
+    feed_urls = ("https://feeds.content.dowjones.io/public/rss/mw_topstories",)
+    region = "Global"
+
+
+class FreightWavesCollector(MultiFeedRSSCollector):
+    name = "freightwaves"
+    source_name = "FreightWaves"
+    feed_urls = ("https://www.freightwaves.com/feed",)
+    region = "Global"
+
+
+class SeekingAlphaCollector(MultiFeedRSSCollector):
+    name = "seeking_alpha"
+    source_name = "Seeking Alpha"
+    feed_urls = ("https://seekingalpha.com/market_currents.xml",)
+    region = "Global"
+
+
+class InvestingCommoditiesCollector(MultiFeedRSSCollector):
+    name = "investing_commodities"
+    source_name = "Investing.com Commodities"
+    feed_urls = ("https://www.investing.com/rss/news_301.rss",)
+    region = "Global"
+
+
+class CoinDeskCollector(MultiFeedRSSCollector):
+    name = "coindesk"
+    source_name = "CoinDesk"
+    feed_urls = ("https://www.coindesk.com/arc/outboundfeeds/rss/",)
+    region = "Global"
