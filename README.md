@@ -1,382 +1,108 @@
-# Financial Intelligence Aggregation Dashboard MVP
+# Global Market News — 金融资讯聚合看板
 
-This repository contains a Python + Streamlit MVP for a financial intelligence feedboard. The product goal is not to build a generic news site, but to create a research-oriented workflow for macro tracking, commodities research, market monitoring, and investment consulting.
+Python + Streamlit 实现的**研究导向**金融资讯信息流看板，面向宏观跟踪、商品期货研究、
+市场监测与投资研究工作流。界面为**暗色高级风格**（衬线字体、金色点缀、固定顶栏），
+支持多源聚合、自动抓取、标题中文翻译与多维度筛选。
 
-## Current Status
+## 功能特性
 
-The repository now includes a runnable MVP with:
+- **21 个新闻源聚合**：宏观/媒体、AI 产业、商品期货、加密四大赛道（见下文来源列表）
+- **每 5 分钟自动抓取**：服务器 cron 驱动 `scripts/run_pipeline.py`，含清洗、去重、打标、摘要、翻译、入库全流程
+- **标题中文翻译**：DeepL API（Free 版每月 50 万字符），翻译按预算分批补足
+- **暗色高级 UI**：深墨蓝背景 + 金色点缀、Noto Serif SC 衬线正文、Cormorant Garamond 数字、固定顶栏（品牌 + 时钟 + 筛选栏）
+- **研究导向信息流**：来源/主题/区域/搜索筛选、重复报道折叠、`加载更多` 历史浏览、来源状态与热门话题侧栏
+- **中文界面**：标题翻译为中文，摘要保留原文语言
 
-- SQLite-backed core data model
-- Alibaba Cloud Hong Kong ECS deployment path with `systemd`, `nginx`, scheduled ingestion, and daily SQLite backup
-- Live source ingestion from:
-  - Federal Reserve official RSS
-  - Reuters via Google News RSS source search
-  - BLS via Google News RSS source search
-  - Bloomberg RSS
-  - CNBC RSS
-  - CNN RSS
-  - WSJ RSS
-  - FT RSS
-  - Yahoo Finance RSS
-  - Axios RSS
-  - MktNews flash feed, with optional websocket-backed live cache bridge for fresher updates
-- Minimal processing pipeline for:
-  - text cleaning
-  - URL, content, and lightweight story-key deduplication
-  - rule-based tags
-  - rule-based summary generation
-  - minimal event grouping
-  - rule-based importance scoring
-- Optional title-only translation through a configurable OpenAI-compatible model endpoint, defaulting to Qwen MT Flash through Alibaba DashScope
-- A Streamlit dashboard with a light paper-toned research board style, duplicate-story collapsing, improved search ranking, incremental history loading, and mobile-friendly collapsed controls
-- The tracked MVP scope is the Python + Streamlit dashboard only; the abandoned Android/local-model experiment is not part of the current repository scope
-
-The project currently runs on the default local Python 3.14 environment.
-
-## MVP Pipeline
-
-The current pipeline is:
-
-1. Collect articles from stable public sources
-2. Normalize and clean text
-3. Deduplicate by URL, content fingerprint, and lightweight story grouping
-4. Infer tags from rule-based keyword matching
-5. Generate a short summary
-6. Optionally translate titles through a configurable translation model during ingestion
-7. Assign a minimal event grouping key
-8. Compute rule-based importance score
-9. Persist results to SQLite
-10. Display the feed in Streamlit
-
-## Project Structure
+## 项目结构
 
 ```text
-news/
-├─ data/
+global-market-news/
+├─ data/                        # SQLite 数据库与缓存（不入库）
 ├─ scripts/
-│  ├─ init_db.py
-│  └─ run_pipeline.py
-│  └─ run_mktnews_live_bridge.py
-├─ src/
-│  └─ news_mvp/
-│     ├─ collectors/
-│     ├─ dashboard/
-│     │  ├─ components.py
-│     │  ├─ queries.py
-│     │  ├─ styles.py
-│     │  └─ ui.py
-│     ├─ pipeline/
-│     ├─ config.py
-│     ├─ db.py
-│     └─ schema.py
-├─ .env.example
-├─ AGENTS.md
-├─ PLANS.md
+│  ├─ init_db.py                # 初始化数据库
+│  └─ run_pipeline.py           # 抓取→清洗→去重→打标→摘要→翻译→入库
+│  └─ run_mktnews_live_bridge.py# MktNews websocket 实时缓存桥（可选）
+│  └─ run_translation_backfill.py
+├─ src/news_mvp/
+│  ├─ collectors/               # 各来源采集器（base/media_rss/mktnews/reuters/...）
+│  ├─ dashboard/                # Streamlit UI（ui/components/styles/queries）
+│  ├─ pipeline/                 # 数据管道（cleaning/dedup/tagging/scoring/translator/...）
+│  ├─ config.py                 # 环境变量配置
+│  ├─ db.py / schema.py         # 数据库访问与 schema
+├─ .streamlit/config.toml       # Streamlit 主题（暗色）
+├─ .env.example                 # 环境变量模板
+├─ DEPLOYMENT.md                # 部署说明（本地/服务器/Docker/PaaS/cron）
+├─ AGENTS.md                    # 开发原则
+├─ PLANS.md                     # 开发计划
 ├─ pyproject.toml
-└─ streamlit_app.py
+└─ streamlit_app.py             # 入口
 ```
 
-## Setup
+## 新闻源（21 个）
 
-1. Create and activate a virtual environment.
-2. Install the project in editable mode:
+| 分类 | 来源 |
+|------|------|
+| 宏观/财经媒体 | Reuters、Bloomberg、CNBC、CNN、WSJ、FT、Yahoo Finance、Axios、MarketWatch |
+| 官方机构 | Federal Reserve、BLS |
+| 快讯/综合 | MktNews、Seeking Alpha、Investing.com Commodities、Google News 聚合（Reuters/BLS 经由） |
+| AI 产业 | VentureBeat AI、TechCrunch AI |
+| 商品期货 | OilPrice.com（能源/大宗）、Mining.com（金属/矿业）、The Western Producer（农产品）、FreightWaves（航运运价） |
+| 加密 | CoinDesk |
 
-```bash
-python -m pip install -e .
-```
+> 数据管道设计保留了数据层能力（如 `importance_score` 字段），但 UI 层已移除重要性标签/排序与快讯面板，聚焦纯净信息流。
 
-3. Create an environment file:
-
-```bash
-copy .env.example .env
-```
-
-4. Initialize the database:
+## 快速开始
 
 ```bash
+git clone https://github.com/dipui9707/global-market-news.git
+cd global-market-news
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e .
+cp .env.example .env        # 编辑：TRANSLATION_ENABLED=true、TRANSLATION_API_KEY=<DeepL Key>
 python scripts/init_db.py
-```
-
-## Run
-
-Fetch the latest data, then start the dashboard:
-
-```bash
 python scripts/run_pipeline.py
-streamlit run streamlit_app.py
+streamlit run streamlit_app.py --server.port 8501 --server.address 0.0.0.0
 ```
 
-The dashboard also includes a built-in refresh button for rerunning ingestion from the UI.
+完整部署（systemd / Docker / cron / PaaS）见 **[DEPLOYMENT.md](DEPLOYMENT.md)**。
 
-The current dashboard defaults to a larger initial feed slice and supports incremental loading for deeper history browsing.
+## 数据管道
 
-## MktNews Live Bridge
+1. 采集 21 个来源的公开 RSS / API
+2. 文本清洗与标准化（统一为 `ArticlePayload`）
+3. URL、内容指纹、故事键三层去重
+4. 规则打标（主题/资产标签）与轻量事件归组
+5. 规则摘要生成
+6. 标题 DeepL 中文翻译（按预算分批，`TRANSLATION_MAX_ITEMS_PER_RUN` 控制单次数量）
+7. 入库 SQLite（WAL 模式，保留上限 `ARTICLE_RETENTION_COUNT`）
 
-`MktNews` currently exposes a public REST endpoint, but the latest public snapshot can lag behind the live website feed. The repository now includes an optional bridge script that listens to the public `MktNews` websocket feed and writes a local cache file for the collector to read first.
+## 翻译
 
-Run the bridge locally or on the server:
+- 默认 **DeepL**（`TRANSLATION_PROVIDER=deepl`）：Free 版 `https://api-free.deepl.com/v2/translate`，Pro 版改 `https://api.deepl.com/v2/translate`
+- 兼容 OpenAI 风格接口（`TRANSLATION_PROVIDER=openai` + `TRANSLATION_BASE_URL`，如 Qwen/DashScope），作为可选路径保留
+- 仅翻译标题；摘要保留原文语言
 
-```bash
-python scripts/run_mktnews_live_bridge.py
-```
+## 配置
 
-Useful test mode:
+全部环境变量见 `.env.example` 与 DEPLOYMENT.md「配置项说明」。关键项：
 
-```bash
-python scripts/run_mktnews_live_bridge.py --once --bootstrap-limit 20
-```
+| 配置项 | 说明 |
+|--------|------|
+| `TRANSLATION_ENABLED` / `TRANSLATION_API_KEY` | 标题翻译开关与 DeepL Key |
+| `TRANSLATION_PROVIDER` | `deepl` 或 `openai`（兼容接口） |
+| `COLLECTOR_ITEM_LIMIT` | 每源单次抓取上限 |
+| `ARTICLE_RETENTION_COUNT` | 文章保留上限（默认 5000） |
+| `DEFAULT_LOOKBACK_HOURS` | 看板默认时间窗口 |
 
-The collector reads `data/mktnews_live_en.json` first and then falls back to the public REST endpoint. This keeps the MVP on stable public endpoints while giving `MktNews` a path to fresher data when the websocket bridge is enabled.
+## 已知限制
 
-## Server Operations
+- Reuters / BLS 经 Google News RSS 中转；部分站点（Reuters、FT、WSJ）有反爬，抓取偶发 401/403
+- 新闻原文均为国外站点，国内点击"原文"需自行解决网络访问
+- 事件归组、重要性评分为规则式启发，非实体级
+- 看板默认无认证，公网部署建议加反代认证
+- 界面字体来自 Google Fonts CDN，国内加载可能缓慢，不影响功能
 
-Useful commands for the current Alibaba Cloud ECS deployment:
+## 开发文档
 
-### Service Status
-
-```bash
-systemctl status news-dashboard --no-pager
-```
-
-查看网页服务状态，确认新闻终端页面是否正在运行。
-
-```bash
-systemctl status news-pipeline.timer --no-pager
-```
-
-查看定时抓取任务状态，确认自动更新是否仍在工作。
-
-```bash
-systemctl status news-pipeline.service --no-pager
-```
-
-查看最近一次抓取任务执行状态，适合排查为什么最近没有新消息。
-
-```bash
-systemctl status news-backup.timer --no-pager
-```
-
-查看数据库自动备份定时器状态，确认每天备份是否启用。
-
-```bash
-systemctl status news-backup.service --no-pager
-```
-
-查看最近一次数据库备份执行状态。
-
-### Logs
-
-```bash
-journalctl -u news-dashboard -n 100 --no-pager
-```
-
-查看网页服务最近 100 行日志。页面打不开、启动失败、报错时优先看这个。
-
-```bash
-journalctl -u news-pipeline.service -n 100 --no-pager
-```
-
-查看抓取任务最近 100 行日志。适合排查新闻源抓取失败、翻译失败、数据库写入异常。
-
-```bash
-journalctl -u news-backup.service -n 50 --no-pager
-```
-
-查看数据库备份任务最近 50 行日志，确认备份是否真正执行成功。
-
-### Restart And Stop
-
-```bash
-systemctl restart news-dashboard
-```
-
-重启网页服务。修改页面代码、样式或配置后常用。
-
-```bash
-systemctl restart news-pipeline.timer
-```
-
-重启定时抓取任务。修改抓取逻辑或定时器配置后使用。
-
-```bash
-systemctl stop news-dashboard
-```
-
-停止网页服务，适合临时下线页面。
-
-```bash
-systemctl start news-dashboard
-```
-
-启动网页服务。
-
-### Manual Tasks
-
-```bash
-cd /root/global-market-news
-source .venv/bin/activate
-python scripts/run_pipeline.py
-```
-
-手动立即执行一轮抓取、清洗、翻译和入库，适合需要马上刷新数据时使用。
-
-```bash
-systemctl start news-backup.service
-```
-
-手动立即执行一次数据库备份。
-
-### Timers And Backups
-
-```bash
-systemctl list-timers --all | grep news-pipeline
-```
-
-查看抓取定时任务的上次和下次执行时间。
-
-```bash
-systemctl list-timers --all | grep news-backup
-```
-
-查看备份定时任务的上次和下次执行时间。
-
-```bash
-ls -lh /root/backups/news
-```
-
-查看当前数据库备份文件列表和大小。
-
-### Common Paths
-
-```bash
-cd /root/global-market-news
-```
-
-进入项目目录。
-
-```bash
-cd /root/backups/news
-```
-
-进入数据库备份目录。
-
-### Edit Configuration
-
-```bash
-nano /root/global-market-news/.env
-```
-
-编辑环境变量配置，例如翻译 Key、自动更新参数和文章保留上限。
-
-```bash
-systemctl restart news-dashboard
-systemctl restart news-pipeline.timer
-```
-
-修改 `.env` 后重启页面服务和定时抓取任务，让新配置生效。
-
-## Configuration
-
-Current environment variables:
-
-- `APP_ENV`
-- `DATABASE_URL`
-- `STREAMLIT_SERVER_PORT`
-- `DEFAULT_LOOKBACK_HOURS`
-- `DEFAULT_PAGE_SIZE`
-- `COLLECTOR_ITEM_LIMIT`
-- `ARTICLE_RETENTION_COUNT`
-- `AUTO_UPDATE_ENABLED`
-- `AUTO_UPDATE_INTERVAL_SECONDS`
-- `TRANSLATION_ENABLED`
-- `TRANSLATION_API_KEY`
-- `ARK_API_KEY`
-- `DASHSCOPE_API_KEY` (legacy fallback)
-- `TRANSLATION_MODEL`
-- `TRANSLATION_BASE_URL`
-- `TRANSLATION_SOURCE_LANG`
-- `TRANSLATION_TARGET_LANG`
-- `TRANSLATION_MAX_ITEMS_PER_RUN`
-- `STORY_DEDUP_LOOKBACK_HOURS`
-
-See [.env.example](C:\Users\hwsy5\Desktop\news\.env.example).
-
-## Dashboard Capabilities
-
-The current Streamlit board supports:
-
-- light paper-toned research board layout
-- source filter
-- topic filter
-- region filter
-- search across titles, tags, and event titles
-- title-prioritized search ranking, with summary matches treated as lower-priority hits
-- sort by time or importance
-- auto update toggle and interval control
-- optional Chinese translated titles for foreign-language items
-- summaries remain in the original source language
-- important flash panel
-- main feed timeline
-- default initial feed load of 100 items with a `加载更多` interaction for deeper history browsing
-- default duplicate-story collapsing in the main feed
-- compact mobile-friendly control area with a collapsed filter panel
-- source status side panel
-- hot topic side panel
-
-## Data Notes
-
-- Default database: `data/news_mvp.db`
-- SQLite is used for MVP speed and simplicity
-- Schema is organized so a future PostgreSQL migration is manageable
-- The pipeline can automatically prune the article table to the most recent retained records
-- Duplicate stories are still stored in SQLite, but the main feed now collapses duplicate rows by default
-- Each article is normalized to a single primary event mapping to avoid duplicate feed rows from repeated event joins
-- SQLite connections use `WAL` mode and a busy timeout to reduce lock contention between the dashboard and scheduled ingestion
-- Main ingestion no longer re-runs database initialization on every pipeline invocation, which reduces local lock contention when the dashboard stays open during manual refreshes
-- The dashboard displays titles, summaries, tags, scores, and links rather than large raw article bodies
-
-## What Is Implemented
-
-- Federal Reserve official feed ingestion
-- Reuters and BLS source-limited feed ingestion through Google News RSS search
-- Bloomberg, CNBC, CNN, WSJ, FT, Yahoo Finance, Axios, and MktNews integrations
-- Optional Qwen MT Flash title translation through Alibaba DashScope's OpenAI-compatible endpoint
-- `.env.example` is aligned to `qwen-mt-flash` as the current default translation model
-- Rule-based enrichment and lightweight duplicate-story collapsing
-- Mobile-friendly collapsed controls and a refined light research-board UI
-- Incremental feed loading for longer history browsing
-- Search that prioritizes title matches and also supports tag and event lookups
-- ECS deployment workflow with `systemd`, `nginx`, recurring pipeline runs, and SQLite backup
-- Repository cleanup now keeps runtime secrets, SQLite data, cache files, logs, and temporary reverse-engineering artifacts out of Git tracking
-
-## What Is Not Implemented Yet
-
-- Android/native mobile client
-- On-device local model translation
-- Direct Reuters site parsing
-- Direct BLS source feed parsing in the current environment
-- Strong cross-source event clustering
-- Real sentiment analysis
-- Production scheduling and monitoring
-- Historical backfill workflows
-- User management or multi-tenant features
-
-## Known Limitations
-
-- Reuters and BLS currently depend on Google News RSS as a transport layer
-- Some third-party publisher RSS feeds may change structure or rate-limit intermittently
-- Automatic translation is opt-in and depends on a configured translation API key
-- The current translation mode only applies to titles; summaries remain in the source language
-- Historical article retention defaults to the most recent 5000 records
-- The dashboard does not render all retained rows at once; it loads history incrementally to keep Streamlit responsive
-- Duplicate detection is heuristic and story grouping remains lightweight rather than entity-aware
-- Event grouping is heuristic, not entity-aware
-- Importance scoring is rule-based and intentionally simple
-- Source status reflects observed article freshness, not full collector health telemetry
-
-## Recommended Next Steps
-
-- Improve event clustering quality
-- Make source status reflect real collector success/failure
-- Add more research-oriented panels such as event view and topic drill-down
-- Improve scoring logic with stronger source, recency, and asset impact rules
+- [AGENTS.md](AGENTS.md) — 架构与开发原则
+- [PLANS.md](PLANS.md) — 开发阶段记录
