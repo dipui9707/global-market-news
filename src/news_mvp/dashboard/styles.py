@@ -322,13 +322,6 @@ def get_dashboard_css() -> str:
         letter-spacing: 0.015em;
     }
 
-    .meta-line {
-        color: var(--muted);
-        font-size: 0.7rem;
-        margin-bottom: 0.48rem;
-        letter-spacing: 0.04em;
-    }
-
     .badge-row {
         display: flex;
         flex-wrap: wrap;
@@ -675,7 +668,6 @@ def get_dashboard_css() -> str:
             line-height: 1.58;
         }
 
-        .meta-line,
         .feed-footer {
             font-size: 0.72rem;
         }

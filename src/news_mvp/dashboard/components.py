@@ -86,7 +86,6 @@ def render_feed_item(article: ArticleCard) -> None:
         f"<div>{ago}</div>"
         "</div>"
         "<div>"
-        f"<div class=\"meta-line\">{escape(article.region or 'Global')} · {escape(article.source)}</div>"
         f"<div class=\"feed-title\">{escape(display_title)}</div>"
         f"<div class=\"badge-row\">{''.join(badges)}</div>"
         f"<div class=\"summary-text\">{escape(display_summary)}</div>"
