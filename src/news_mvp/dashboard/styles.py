@@ -38,7 +38,7 @@ def get_dashboard_css() -> str:
     }
 
     .block-container {
-        padding-top: 150px;
+        padding-top: 210px;
         padding-bottom: 1.2rem;
         max-width: 1400px;
     }
@@ -54,7 +54,7 @@ def get_dashboard_css() -> str:
             linear-gradient(180deg, rgba(20, 25, 33, 0.97), rgba(15, 19, 26, 0.94));
         border: 1px solid var(--line);
         border-top: 1px solid rgba(201, 168, 106, 0.35);
-        border-radius: 0 0 18px 18px;
+        border-radius: 18px 18px 0 0;
         padding: 1.15rem 1.25rem;
         margin-bottom: 0;
         min-height: 108px;
@@ -600,12 +600,21 @@ def get_dashboard_css() -> str:
     }
 
     details[data-testid="stExpander"] {
-        background: linear-gradient(180deg, rgba(22, 27, 35, 0.85), rgba(16, 20, 27, 0.65));
+        background: linear-gradient(180deg, rgba(22, 27, 35, 0.92), rgba(16, 20, 27, 0.88));
         border: 1px solid rgba(201, 168, 106, 0.16);
-        border-radius: 14px;
-        margin-bottom: 0.8rem;
-        overflow: hidden;
+        border-radius: 0 0 16px 16px;
+        margin-bottom: 0;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        position: fixed;
+        top: 148px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 1400px;
+        z-index: 998;
+        max-height: 62vh;
+        overflow-y: auto;
+        scrollbar-width: thin;
     }
 
     details[data-testid="stExpander"] summary {
@@ -613,6 +622,10 @@ def get_dashboard_css() -> str:
         color: var(--text);
         font-weight: 500;
         letter-spacing: 0.02em;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: linear-gradient(180deg, rgba(22, 27, 35, 0.97), rgba(16, 20, 27, 0.92));
     }
 
     details[data-testid="stExpander"] summary:hover {
@@ -626,9 +639,13 @@ def get_dashboard_css() -> str:
     /* ── 响应式 ─────────────────────────────────── */
     @media (max-width: 900px) {
         .block-container {
-            padding-top: 195px;
+            padding-top: 190px;
             padding-left: 0.85rem;
             padding-right: 0.85rem;
+        }
+
+        details[data-testid="stExpander"] {
+            top: 124px;
         }
 
         .hero-bar {
