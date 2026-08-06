@@ -363,15 +363,6 @@ def get_dashboard_css() -> str:
         margin-bottom: 0.5rem;
     }
 
-    .feed-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 0.5rem;
-        color: var(--faint);
-        font-size: 0.7rem;
-    }
-
     /* ── 侧栏 ──────────────────────────────────── */
     .side-list {
         display: flex;
@@ -465,6 +456,9 @@ def get_dashboard_css() -> str:
         border: 1px solid rgba(201, 168, 106, 0.25);
         background: rgba(201, 168, 106, 0.07);
         font-size: 0.68rem;
+        margin-left: 0.5em;
+        vertical-align: middle;
+        white-space: nowrap;
     }
 
     .feed-link:hover {
@@ -671,10 +665,6 @@ def get_dashboard_css() -> str:
         .feed-title {
             font-size: 0.96rem;
             line-height: 1.58;
-        }
-
-        .feed-footer {
-            font-size: 0.72rem;
         }
 
         .summary-text {
