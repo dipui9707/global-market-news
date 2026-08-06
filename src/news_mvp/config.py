@@ -24,6 +24,7 @@ class Settings:
     auto_update_enabled: bool
     auto_update_interval_seconds: int
     translation_enabled: bool
+    translation_provider: str
     translation_api_key: str | None
     translation_model: str
     translation_endpoint_id: str | None
@@ -56,6 +57,7 @@ def get_settings() -> Settings:
         auto_update_enabled=os.getenv("AUTO_UPDATE_ENABLED", "false").lower() in {"1", "true", "yes", "on"},
         auto_update_interval_seconds=int(os.getenv("AUTO_UPDATE_INTERVAL_SECONDS", "300")),
         translation_enabled=os.getenv("TRANSLATION_ENABLED", "false").lower() in {"1", "true", "yes", "on"},
+        translation_provider=os.getenv("TRANSLATION_PROVIDER", "openai").lower(),
         translation_api_key=(
             os.getenv("TRANSLATION_API_KEY")
             or os.getenv("ARK_API_KEY")

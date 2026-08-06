@@ -37,6 +37,35 @@ def translate_text(text: str, settings: Settings) -> str | None:
     if not translation_is_configured(settings):
         return None
 
+    if settings.translation_provider == "deepl":
+        return _translate_with_deepl(text, settings)
+    return _translate_with_openai_compatible(text, settings)
+
+
+def _translate_with_deepl(text: str, settings: Settings) -> str | None:
+    data: dict[str, str] = {
+        "text": text,
+        "target_lang": settings.translation_target_lang,
+    }
+    source_lang = settings.translation_source_lang
+    if source_lang and source_lang.lower() not in {"auto", ""}:
+        data["source_lang"] = source_lang
+    response = requests.post(
+        settings.translation_base_url,
+        headers={"Authorization": f"DeepL-Auth-Key {settings.translation_api_key}"},
+        data=data,
+        timeout=30,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    translations = payload.get("translations") or []
+    if not translations:
+        return None
+    content = (translations[0].get("text") or "").strip()
+    return content or None
+
+
+def _translate_with_openai_compatible(text: str, settings: Settings) -> str | None:
     model_name = settings.translation_endpoint_id or settings.translation_model
     if settings.translation_model.startswith("qwen-mt-"):
         payload = {

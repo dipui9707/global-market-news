@@ -23,6 +23,7 @@ from news_mvp.dashboard.queries import (
 )
 from news_mvp.dashboard.styles import get_dashboard_css
 from news_mvp.pipeline.orchestrator import list_collectors, run_pipeline
+from news_mvp.pipeline.translator import backfill_recent_translations, translation_is_configured
 
 
 INITIAL_FEED_PAGE_SIZE = 100
@@ -83,15 +84,32 @@ def render_dashboard(settings: Settings) -> None:
         )
 
         st.markdown("<div class='control-action-group'></div>", unsafe_allow_html=True)
-        st.markdown("<div class='control-caption'>数据抓取</div>", unsafe_allow_html=True)
-        if st.button("重新抓取", use_container_width=True, type="primary"):
-            with st.spinner("Running collection and processing pipeline..."):
-                result = run_pipeline(settings)
-            st.success(
-                f"Pipeline finished: collected {result.collected_count}, "
-                f"stored {result.stored_count}, duplicates {result.duplicate_count}."
-            )
-            st.rerun()
+        action_col, translate_col = st.columns([1, 1], gap="medium")
+        with action_col:
+            st.markdown("<div class='control-caption'>数据抓取</div>", unsafe_allow_html=True)
+            if st.button("重新抓取", use_container_width=True, type="primary"):
+                with st.spinner("Running collection and processing pipeline..."):
+                    result = run_pipeline(settings)
+                st.success(
+                    f"Pipeline finished: collected {result.collected_count}, "
+                    f"stored {result.stored_count}, duplicates {result.duplicate_count}."
+                )
+                st.rerun()
+        with translate_col:
+            st.markdown("<div class='control-caption'>翻译操作</div>", unsafe_allow_html=True)
+            translate_disabled = not translation_is_configured(settings)
+            if st.button("补全翻译", use_container_width=True, disabled=translate_disabled, type="secondary"):
+                with st.spinner("Translating high-priority items..."):
+                    translated = backfill_recent_translations(
+                        settings,
+                        hours=hours,
+                        limit=settings.translation_max_items_per_run,
+                    )
+                if translated > 0:
+                    st.success(f"补全翻译完成：已更新 {translated} 条标题翻译。")
+                else:
+                    st.info("当前时间窗口内没有新的未翻译外文标题。")
+                st.rerun()
 
     hours = locals().get("hours", 72)
     region = locals().get("region", "全部")
