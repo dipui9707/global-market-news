@@ -89,9 +89,9 @@ def get_dashboard_css() -> str:
     .brand-title {
         color: var(--gold);
         font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-        font-size: 1.78rem;
+        font-size: 1.92rem;
         line-height: 1.65;
-        font-weight: 600;
+        font-weight: 700;
         letter-spacing: 0.01em;
         padding-top: 0.24rem;
         padding-bottom: 0.24rem;
@@ -238,7 +238,8 @@ def get_dashboard_css() -> str:
     .flash-title {
         color: var(--text);
         font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
-        font-weight: 600;
+        font-size: 1.06rem;
+        font-weight: 700;
         line-height: 1.52;
     }
 
@@ -318,7 +319,7 @@ def get_dashboard_css() -> str:
     .feed-title {
         color: var(--text);
         font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
-        font-size: 1.14rem;
+        font-size: 1.3rem;
         line-height: 1.24;
         font-weight: 700;
         margin: 0.02rem 0 0.16rem;
@@ -375,8 +376,9 @@ def get_dashboard_css() -> str:
     .summary-text {
         color: color-mix(in srgb, var(--text) 84%, var(--muted));
         font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
-        font-size: 0.8rem;
+        font-size: 0.95rem;
         line-height: 1.4;
+        font-weight: 500;
         margin-bottom: 0.28rem;
     }
 
@@ -679,7 +681,7 @@ def get_dashboard_css() -> str:
         }
 
         .brand-title {
-            font-size: 1.5rem;
+            font-size: 1.62rem;
             line-height: 1.7;
             padding-top: 0.22rem;
             padding-bottom: 0.22rem;
@@ -719,11 +721,11 @@ def get_dashboard_css() -> str:
         .meta-line,
         .summary-text,
         .feed-footer {
-            font-size: 0.74rem;
+            font-size: 0.85rem;
         }
 
         .flash-list li {
-            font-size: 0.88rem;
+            font-size: 0.98rem;
         }
 
         .flash-section-head {
