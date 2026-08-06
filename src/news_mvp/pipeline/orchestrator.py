@@ -15,6 +15,8 @@ from news_mvp.collectors import (
     FederalReserveCollector,
     MktNewsCollector,
     ReutersCollector,
+    TechCrunchAICollector,
+    VentureBeatAICollector,
     WSJCollector,
     YahooFinanceCollector,
 )
@@ -62,6 +64,8 @@ def get_collectors() -> list[object]:
         MktNewsCollector(),
         FederalReserveCollector(),
         BLSCollector(),
+        VentureBeatAICollector(),
+        TechCrunchAICollector(),
     ]
 
 

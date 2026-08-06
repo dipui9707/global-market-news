@@ -72,6 +72,20 @@ class AxiosCollector(MultiFeedRSSCollector):
     region = "United States"
 
 
+class VentureBeatAICollector(MultiFeedRSSCollector):
+    name = "venturebeat_ai"
+    source_name = "VentureBeat AI"
+    feed_urls = ("https://venturebeat.com/category/ai/feed/",)
+    region = "Global"
+
+
+class TechCrunchAICollector(MultiFeedRSSCollector):
+    name = "techcrunch_ai"
+    source_name = "TechCrunch AI"
+    feed_urls = ("https://techcrunch.com/category/artificial-intelligence/feed/",)
+    region = "Global"
+
+
 class SCMPCollector(MultiFeedRSSCollector):
     name = "scmp"
     source_name = "SCMP"
