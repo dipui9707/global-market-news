@@ -4,7 +4,7 @@ from __future__ import annotations
 def get_dashboard_css() -> str:
     return """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;600&display=swap');
 
     :root {
         --bg: var(--background-color);
@@ -237,7 +237,8 @@ def get_dashboard_css() -> str:
 
     .flash-title {
         color: var(--text);
-        font-weight: 700;
+        font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
+        font-weight: 600;
         line-height: 1.52;
     }
 
@@ -316,7 +317,7 @@ def get_dashboard_css() -> str:
 
     .feed-title {
         color: var(--text);
-        font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
         font-size: 1.14rem;
         line-height: 1.24;
         font-weight: 700;
@@ -373,6 +374,7 @@ def get_dashboard_css() -> str:
 
     .summary-text {
         color: color-mix(in srgb, var(--text) 84%, var(--muted));
+        font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
         font-size: 0.8rem;
         line-height: 1.4;
         margin-bottom: 0.28rem;
