@@ -1,13 +1,23 @@
 from __future__ import annotations
 
+import os
 from datetime import UTC, datetime, timedelta, timezone
 from html import escape
+from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 import streamlit as st
 
 from news_mvp.collectors.base import sanitize_text
 from news_mvp.dashboard.queries import ArticleCard, SourceStatus, TopicPulse
+
+
+def _original_link(url: str) -> str:
+    """若配置了 NEWS_PROXY_BASE，则返回经服务器代理的原文链接。"""
+    base = os.environ.get("NEWS_PROXY_BASE", "").rstrip("/")
+    if not base:
+        return url
+    return f"{base}/?u={quote(url, safe='')}"
 
 BJ_TZ = timezone(timedelta(hours=8))
 NY_TZ = ZoneInfo("America/New_York")
@@ -62,7 +72,7 @@ def render_feed_item(article: ArticleCard) -> None:
         "<div>"
         f"<div class=\"feed-title\">{escape(display_title)}</div>"
         f"<div class=\"badge-row\">{''.join(badges)}</div>"
-        f"<div class=\"summary-text\">{escape(display_summary)} <a href=\"{escape(article.url)}\" target=\"_blank\" class=\"feed-link\">原文</a></div>"
+        f"<div class=\"summary-text\">{escape(display_summary)} <a href=\"{escape(_original_link(article.url))}\" target=\"_blank\" class=\"feed-link\">原文</a></div>"
         "</div>"
         "</div>"
         "</div>"
