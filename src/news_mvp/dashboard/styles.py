@@ -81,7 +81,7 @@ def get_dashboard_css() -> str:
         font-family: "Noto Serif SC", "Songti SC", serif;
         font-size: 1.8rem;
         line-height: 1.5;
-        font-weight: 900;
+        font-weight: 500;
         letter-spacing: 0.04em;
         padding-top: 0.2rem;
         padding-bottom: 0.14rem;
@@ -98,7 +98,7 @@ def get_dashboard_css() -> str:
         font-size: 0.84rem;
         letter-spacing: 0.34em;
         text-transform: uppercase;
-        font-weight: 600;
+        font-weight: 500;
     }
 
     .market-clock {
@@ -116,7 +116,7 @@ def get_dashboard_css() -> str:
         letter-spacing: 0.16em;
         text-transform: uppercase;
         margin-bottom: 0.4rem;
-        font-weight: 600;
+        font-weight: 500;
     }
 
     .control-caption {
@@ -126,7 +126,7 @@ def get_dashboard_css() -> str:
         margin-bottom: 0.32rem;
         display: flex;
         align-items: center;
-        font-weight: 600;
+        font-weight: 500;
         letter-spacing: 0.04em;
     }
 
@@ -152,7 +152,7 @@ def get_dashboard_css() -> str:
         font-size: 0.92rem;
         margin-bottom: 0.6rem;
         letter-spacing: 0.1em;
-        font-weight: 700;
+        font-weight: 500;
     }
 
     /* 快讯面板 */
@@ -220,7 +220,7 @@ def get_dashboard_css() -> str:
         color: var(--text);
         font-family: "Noto Serif SC", "Songti SC", serif;
         font-size: 0.98rem;
-        font-weight: 700;
+        font-weight: 400;
         line-height: 1.92;
     }
 
@@ -298,7 +298,7 @@ def get_dashboard_css() -> str:
         color: var(--gold);
         font-family: "Cormorant Garamond", Georgia, serif;
         font-size: 1.06rem;
-        font-weight: 600;
+        font-weight: 500;
         letter-spacing: 0.02em;
     }
 
@@ -307,7 +307,7 @@ def get_dashboard_css() -> str:
         font-family: "Noto Serif SC", "Songti SC", serif;
         font-size: 1.16rem;
         line-height: 1.62;
-        font-weight: 700;
+        font-weight: 400;
         margin: 0.08rem 0 0.4rem;
         letter-spacing: 0.01em;
     }
@@ -318,7 +318,7 @@ def get_dashboard_css() -> str:
         font-size: 0.92rem;
         line-height: 1.62;
         margin: 0.1rem 0 0.4rem;
-        font-weight: 700;
+        font-weight: 400;
         letter-spacing: 0.015em;
     }
 
@@ -384,7 +384,7 @@ def get_dashboard_css() -> str:
         color: var(--gold-bright);
         font-family: "Cormorant Garamond", Georgia, serif;
         font-size: 0.76rem;
-        font-weight: 600;
+        font-weight: 500;
         border-radius: 999px;
         padding: 0.06rem 0.38rem;
         background: rgba(201, 168, 106, 0.09);
@@ -418,7 +418,7 @@ def get_dashboard_css() -> str:
         color: var(--gold);
         font-family: "Cormorant Garamond", Georgia, serif;
         font-size: 0.86rem;
-        font-weight: 600;
+        font-weight: 500;
         white-space: nowrap;
         padding-top: 0.05rem;
     }
@@ -521,7 +521,7 @@ def get_dashboard_css() -> str:
         font-family: "Cormorant Garamond", Georgia, serif;
         font-size: 1.3rem;
         line-height: 1;
-        font-weight: 600;
+        font-weight: 500;
         text-align: left;
     }
 
@@ -531,7 +531,7 @@ def get_dashboard_css() -> str:
         border: 1px solid rgba(201, 168, 106, 0.45);
         background: linear-gradient(180deg, #d9b877, #b58f4e);
         color: #14100a;
-        font-weight: 700;
+        font-weight: 500;
         min-height: 3rem;
         margin-top: 0;
         width: 100%;
@@ -605,7 +605,7 @@ def get_dashboard_css() -> str:
     details[data-testid="stExpander"] summary {
         padding: 0.82rem 0.95rem;
         color: var(--text);
-        font-weight: 700;
+        font-weight: 500;
         letter-spacing: 0.02em;
     }
 
