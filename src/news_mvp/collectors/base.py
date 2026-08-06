@@ -60,7 +60,11 @@ def parse_published(value: str | None) -> str | None:
         return parsedate_to_datetime(value).astimezone(UTC).isoformat()
     except (TypeError, ValueError, IndexError):
         try:
-            return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(UTC).isoformat()
+            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                # RSS 无时区时间按 UTC 处理（避免被当作服务器本地时区导致偏移）
+                dt = dt.replace(tzinfo=UTC)
+            return dt.astimezone(UTC).isoformat()
         except ValueError:
             return None
 
