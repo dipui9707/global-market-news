@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 import streamlit as st
 
 from news_mvp.collectors.base import sanitize_text
-from news_mvp.dashboard.queries import ArticleCard, FlashItem, SourceStatus, TopicPulse
+from news_mvp.dashboard.queries import ArticleCard, SourceStatus, TopicPulse
 
 BJ_TZ = timezone(timedelta(hours=8))
 NY_TZ = ZoneInfo("America/New_York")
@@ -29,30 +29,6 @@ def render_header() -> None:
     </div>
     """
     st.markdown(html, unsafe_allow_html=True)
-
-
-def render_flash_panel(items: list[FlashItem]) -> None:
-    rows = "".join(
-        (
-            "<li class='flash-item'>"
-            f"<span class='flash-title'>{escape(sanitize_text(item.title_zh) or sanitize_text(item.title))}</span>"
-            f"<span class='flash-meta'><a href=\"{escape(item.url)}\" target=\"_blank\" class=\"feed-link\">原文</a></span>"
-            "</li>"
-        )
-        for item in items
-    ) or "<li>暂无高优先级快讯</li>"
-    st.markdown(
-        f"""
-        <div class="section-card flash-section-card">
-            <div class="flash-section-head">
-                <div class="section-title flash-section-title">⚡ 重要快讯</div>
-                <div class="flash-section-note">快讯速览</div>
-            </div>
-            <ol class="flash-list">{rows}</ol>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
 
 
 def render_feed_item(article: ArticleCard) -> None:

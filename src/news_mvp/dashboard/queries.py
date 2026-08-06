@@ -53,15 +53,6 @@ class TopicPulse:
     article_count: int
 
 
-@dataclass(slots=True)
-class FlashItem:
-    title: str
-    title_zh: str | None
-    source: str
-    url: str
-    importance_score: float
-
-
 def _hidden_source_placeholders() -> str:
     return ", ".join("?" for _ in HIDDEN_SOURCES)
 
@@ -368,30 +359,6 @@ def load_topic_pulse(settings: Settings, hours: int, limit: int = 8) -> list[Top
     return [
         TopicPulse(topic_name=row["topic_name"], article_count=int(row["article_count"] or 0))
         for row in rows
-    ]
-
-
-def load_flash_items(settings: Settings, hours: int, limit: int = 5) -> list[FlashItem]:
-    rows = load_article_feed(settings, hours=hours, sort_by="importance", limit=limit * 2)
-    unique_rows: list[ArticleCard] = []
-    seen_titles: set[str] = set()
-    for row in rows:
-        key = row.title.strip().lower()
-        if key in seen_titles:
-            continue
-        seen_titles.add(key)
-        unique_rows.append(row)
-        if len(unique_rows) >= limit:
-            break
-    return [
-        FlashItem(
-            title=row.title,
-            title_zh=row.title_zh,
-            source=row.source,
-            url=row.url,
-            importance_score=row.importance_score,
-        )
-        for row in unique_rows
     ]
 
 

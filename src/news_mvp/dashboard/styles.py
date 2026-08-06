@@ -168,83 +168,6 @@ def get_dashboard_css() -> str:
         font-weight: 500;
     }
 
-    /* 快讯面板 */
-    .flash-section-card {
-        background:
-            linear-gradient(135deg, rgba(201, 168, 106, 0.09), transparent 42%),
-            linear-gradient(180deg, rgba(24, 29, 38, 0.88), rgba(16, 20, 27, 0.7));
-        border: 1px solid rgba(201, 168, 106, 0.22);
-        position: relative;
-        overflow: hidden;
-        margin-bottom: 0.6rem;
-    }
-
-    .flash-section-card::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 4px;
-        background: linear-gradient(180deg, var(--gold-bright), rgba(201, 168, 106, 0.25));
-    }
-
-    .flash-section-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        gap: 0.8rem;
-        margin-bottom: 0.7rem;
-        padding-bottom: 0.45rem;
-        border-bottom: 1px solid rgba(201, 168, 106, 0.16);
-    }
-
-    .flash-section-title {
-        margin-bottom: 0;
-        color: var(--gold-bright);
-        letter-spacing: 0.08em;
-    }
-
-    .flash-section-note {
-        color: var(--faint);
-        font-size: 0.68rem;
-        white-space: nowrap;
-        letter-spacing: 0.02em;
-    }
-
-    .flash-list {
-        margin: 0;
-        padding-left: 1.15rem;
-        color: var(--text);
-    }
-
-    .flash-list li {
-        padding: 0.88rem 0 0.94rem 0.3rem;
-        font-size: 0.9rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        position: relative;
-    }
-
-    .flash-list li:last-child {
-        border-bottom: none;
-    }
-
-    .flash-title {
-        color: var(--text);
-        font-family: "Noto Serif SC", "Songti SC", serif;
-        font-size: 0.98rem;
-        font-weight: 400;
-        line-height: 1.92;
-    }
-
-    .flash-meta {
-        display: inline-flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 0.45rem;
-        margin-left: 0.55rem;
-    }
-
     /* ── Feed 卡片 ─────────────────────────────── */
     .feed-card {
         position: relative;
@@ -670,17 +593,6 @@ def get_dashboard_css() -> str:
         .summary-text {
             font-size: 0.76rem;
             line-height: 1.95;
-        }
-
-        .flash-list li {
-            font-size: 0.86rem;
-            line-height: 1.88;
-        }
-
-        .flash-section-head {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.25rem;
         }
 
         .section-card {

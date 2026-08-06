@@ -5,7 +5,6 @@ import streamlit as st
 from news_mvp.config import Settings
 from news_mvp.dashboard.components import (
     render_feed_item,
-    render_flash_panel,
     render_header,
     render_notes_panel,
     render_stat_panel,
@@ -16,7 +15,6 @@ from news_mvp.dashboard.queries import (
     load_article_feed,
     load_dashboard_stats,
     load_filter_options,
-    load_flash_items,
     load_source_status,
     load_topic_pulse,
     SourceStatus,
@@ -127,7 +125,6 @@ def render_dashboard(settings: Settings) -> None:
         settings.article_retention_count,
     )
 
-    flash_items = load_flash_items(settings, hours=hours, limit=5)
     source_status_rows = load_source_status(settings, hours=hours)
     source_status_map = {row.source: row for row in source_status_rows}
     source_status = []
@@ -153,7 +150,6 @@ def render_dashboard(settings: Settings) -> None:
     main_col, side_col = st.columns([4.8, 1.45], gap="large")
 
     with main_col:
-        render_flash_panel(flash_items)
         for article in articles:
             render_feed_item(article)
         if articles:
