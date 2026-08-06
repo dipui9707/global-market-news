@@ -277,20 +277,6 @@ def get_dashboard_css() -> str:
         opacity: 0;
     }
 
-    .feed-card.priority-medium::before,
-    .feed-card.priority-high::before {
-        opacity: 1;
-    }
-
-    .feed-card.priority-medium::before {
-        background: linear-gradient(180deg, rgba(201, 168, 106, 0.75), rgba(201, 168, 106, 0.2));
-    }
-
-    .feed-card.priority-high::before {
-        width: 3px;
-        background: linear-gradient(180deg, var(--gold-bright), rgba(201, 168, 106, 0.35));
-    }
-
     .feed-layout {
         display: grid;
         grid-template-columns: 60px 1fr;
@@ -384,17 +370,6 @@ def get_dashboard_css() -> str:
         gap: 0.5rem;
         color: var(--faint);
         font-size: 0.7rem;
-    }
-
-    .score-chip {
-        color: var(--gold-bright);
-        font-family: "Cormorant Garamond", Georgia, serif;
-        font-size: 0.76rem;
-        font-weight: 500;
-        border-radius: 999px;
-        padding: 0.06rem 0.38rem;
-        background: rgba(201, 168, 106, 0.09);
-        border: 1px solid rgba(201, 168, 106, 0.22);
     }
 
     /* ── 侧栏 ──────────────────────────────────── */

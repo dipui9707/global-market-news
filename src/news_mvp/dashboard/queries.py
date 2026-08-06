@@ -116,7 +116,7 @@ def load_article_feed(
     region: str | None = None,
     source: str | None = None,
     search: str | None = None,
-    sort_by: str = "importance",
+    sort_by: str = "time",
     limit: int | None = None,
     collapse_duplicates: bool = True,
 ) -> list[ArticleCard]:

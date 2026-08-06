@@ -36,8 +36,7 @@ def render_flash_panel(items: list[FlashItem]) -> None:
         (
             "<li class='flash-item'>"
             f"<span class='flash-title'>{escape(sanitize_text(item.title_zh) or sanitize_text(item.title))}</span>"
-            f"<span class='flash-meta'><a href=\"{escape(item.url)}\" target=\"_blank\" class=\"feed-link\">原文</a>"
-            f"<span class='score-chip'>[{escape(item.source)} {item.importance_score:.0f}]</span></span>"
+            f"<span class='flash-meta'><a href=\"{escape(item.url)}\" target=\"_blank\" class=\"feed-link\">原文</a></span>"
             "</li>"
         )
         for item in items
@@ -47,7 +46,7 @@ def render_flash_panel(items: list[FlashItem]) -> None:
         <div class="section-card flash-section-card">
             <div class="flash-section-head">
                 <div class="section-title flash-section-title">⚡ 重要快讯</div>
-                <div class="flash-section-note">高优先级情报速览</div>
+                <div class="flash-section-note">快讯速览</div>
             </div>
             <ol class="flash-list">{rows}</ol>
         </div>
@@ -77,9 +76,8 @@ def render_feed_item(article: ArticleCard) -> None:
     if article.is_duplicate:
         duplicate_label = "重复链接" if article.dedup_reason == "same_url" else "重复报道"
         badges.append(f"<span class='badge duplicate'>{duplicate_label}</span>")
-    priority_class = "priority-high" if article.importance_score >= 80 else "priority-medium" if article.importance_score >= 60 else ""
     html = (
-        f"<div class=\"feed-card {priority_class}\">"
+        f"<div class=\"feed-card\">"
         "<div class=\"feed-layout\">"
         "<div class=\"time-col\">"
         f"<div class=\"time-main\">{main_time}</div>"
@@ -90,7 +88,6 @@ def render_feed_item(article: ArticleCard) -> None:
         f"<div class=\"badge-row\">{''.join(badges)}</div>"
         f"<div class=\"summary-text\">{escape(display_summary)}</div>"
         "<div class=\"feed-footer\">"
-        f"<div class=\"score-chip\">重要性 {article.importance_score:.1f}</div>"
         f"<div><a href=\"{escape(article.url)}\" target=\"_blank\" class=\"feed-link\">原文</a></div>"
         "</div>"
         "</div>"

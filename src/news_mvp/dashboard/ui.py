@@ -76,12 +76,7 @@ def render_dashboard(settings: Settings) -> None:
         region = st.selectbox("区域", ["全部"] + filter_options["region"], index=0)
         topic = st.selectbox("主题", ["全部"] + filter_options["topic"], index=0)
         search = st.text_input("搜索", placeholder="搜索标题、标签或事件…")
-        sort_by = st.selectbox(
-            "排序",
-            ["time", "importance"],
-            index=0,
-            format_func=lambda x: "时间降序" if x == "time" else "重要性降序",
-        )
+
 
         st.markdown("<div class='control-action-group'></div>", unsafe_allow_html=True)
         action_col, translate_col = st.columns([1, 1], gap="medium")
@@ -115,7 +110,7 @@ def render_dashboard(settings: Settings) -> None:
     region = locals().get("region", "全部")
     topic = locals().get("topic", "全部")
     search = locals().get("search", "")
-    sort_by = locals().get("sort_by", "time")
+    sort_by = "time"
     selected_source = locals().get("selected_source", "全部")
 
     _sync_feed_pagination(
