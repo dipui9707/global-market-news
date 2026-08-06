@@ -4,31 +4,32 @@ from __future__ import annotations
 def get_dashboard_css() -> str:
     return """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;600;700;900&display=swap');
 
     :root {
-        --bg: var(--background-color);
-        --panel: color-mix(in srgb, var(--background-color) 82%, var(--secondary-background-color));
-        --panel-2: color-mix(in srgb, var(--secondary-background-color) 92%, transparent);
-        --line: color-mix(in srgb, var(--text-color) 14%, transparent);
-        --text: var(--text-color);
-        --muted: color-mix(in srgb, var(--text-color) 56%, var(--background-color));
-        --gold: var(--primary-color);
-        --gold-soft: color-mix(in srgb, var(--primary-color) 16%, transparent);
-        --green: #2f9e78;
-        --red: #cf5c66;
+        --bg: #0b0d11;
+        --panel: rgba(20, 24, 31, 0.72);
+        --panel-solid: #151a22;
+        --panel-2: rgba(26, 31, 40, 0.55);
+        --line: rgba(255, 255, 255, 0.075);
+        --line-strong: rgba(201, 168, 106, 0.28);
+        --text: #ece6d6;
+        --muted: #8f939c;
+        --faint: #6b707a;
+        --gold: #c9a86a;
+        --gold-bright: #e0c28a;
+        --gold-soft: rgba(201, 168, 106, 0.12);
+        --green: #4cbfa0;
+        --red: #d97a86;
     }
 
     .stApp {
         background:
-            radial-gradient(circle at top left, color-mix(in srgb, var(--primary-color) 10%, transparent), transparent 28%),
-            linear-gradient(
-                180deg,
-                color-mix(in srgb, var(--background-color) 96%, white 4%) 0%,
-                color-mix(in srgb, var(--background-color) 92%, black 8%) 100%
-            );
+            radial-gradient(ellipse 1100px 520px at 12% -8%, rgba(201, 168, 106, 0.07), transparent 62%),
+            radial-gradient(ellipse 900px 460px at 96% 0%, rgba(96, 120, 180, 0.05), transparent 58%),
+            linear-gradient(180deg, #0b0d11 0%, #0a0c10 46%, #090b0e 100%);
         color: var(--text);
-        font-family: "Noto Sans SC", sans-serif;
+        font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
     }
 
     .block-container {
@@ -37,49 +38,38 @@ def get_dashboard_css() -> str:
         max-width: 1400px;
     }
 
-    .stMetric {
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 0.4rem 0.7rem;
-    }
-
-    .terminal-shell {
-        background: color-mix(in srgb, var(--panel) 88%, transparent);
-        border: 1px solid var(--line);
-        border-radius: 16px;
-        padding: 0.9rem 1rem;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 16px 40px rgba(0,0,0,0.10);
-    }
-
+    /* ── Hero 顶栏 ─────────────────────────────── */
     .hero-bar {
         display: flex;
         justify-content: space-between;
         align-items: center;
         gap: 1rem;
         background:
-            linear-gradient(135deg, color-mix(in srgb, var(--gold-soft) 22%, transparent), transparent 42%),
-            linear-gradient(180deg, color-mix(in srgb, var(--panel) 97%, white 3%), color-mix(in srgb, var(--panel-2) 98%, transparent));
-        border: 1px solid color-mix(in srgb, var(--gold) 18%, var(--line));
-        border-radius: 16px;
-        padding: 1.05rem 1rem;
-        margin-bottom: 0.8rem;
-        overflow: visible;
-        min-height: 104px;
+            linear-gradient(135deg, rgba(201, 168, 106, 0.09), transparent 46%),
+            linear-gradient(180deg, rgba(23, 28, 36, 0.9), rgba(17, 21, 28, 0.72));
+        border: 1px solid var(--line);
+        border-top: 1px solid rgba(201, 168, 106, 0.35);
+        border-radius: 18px;
+        padding: 1.15rem 1.25rem;
+        margin-bottom: 0.85rem;
+        min-height: 108px;
         margin-top: 0.15rem;
-        box-shadow: 0 10px 28px color-mix(in srgb, var(--gold) 7%, transparent), inset 0 1px 0 rgba(255,255,255,0.32);
+        box-shadow:
+            0 24px 48px rgba(0, 0, 0, 0.42),
+            inset 0 1px 0 rgba(255, 255, 255, 0.045);
         position: relative;
+        overflow: hidden;
     }
 
-    .hero-bar::after {
+    .hero-bar::before {
         content: "";
         position: absolute;
-        left: 1rem;
-        right: 1rem;
+        left: 1.25rem;
+        right: 1.25rem;
         bottom: 0;
         height: 1px;
-        background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 55%, transparent), transparent 70%);
-        opacity: 0.7;
+        background: linear-gradient(90deg, rgba(201, 168, 106, 0.55), transparent 72%);
+        opacity: 0.8;
     }
 
     .hero-left {
@@ -87,91 +77,93 @@ def get_dashboard_css() -> str:
     }
 
     .brand-title {
-        color: var(--gold);
-        font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-        font-size: 1.92rem;
-        line-height: 1.65;
-        font-weight: 700;
-        letter-spacing: 0.01em;
-        padding-top: 0.24rem;
-        padding-bottom: 0.24rem;
+        color: var(--gold-bright);
+        font-family: "Noto Serif SC", "Songti SC", serif;
+        font-size: 2rem;
+        line-height: 1.5;
+        font-weight: 900;
+        letter-spacing: 0.04em;
+        padding-top: 0.2rem;
+        padding-bottom: 0.14rem;
         margin: 0;
         white-space: nowrap;
-        overflow: visible;
         display: block;
         min-height: 2em;
+        text-shadow: 0 0 24px rgba(201, 168, 106, 0.18);
     }
 
     .brand-sub {
         color: var(--muted);
-        font-size: 0.8rem;
-        letter-spacing: 0.2em;
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-size: 0.92rem;
+        letter-spacing: 0.34em;
         text-transform: uppercase;
+        font-weight: 600;
     }
 
     .market-clock {
         color: var(--muted);
-        font-size: 0.9rem;
-        letter-spacing: 0.06em;
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-size: 1.02rem;
+        letter-spacing: 0.1em;
+        font-weight: 500;
     }
 
-    .control-bar {
-        background: rgba(17,17,26,0.94);
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 0.7rem 0.75rem 0.8rem;
-        margin-bottom: 0.85rem;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.015);
-    }
-
+    /* ── 筛选与控制 ────────────────────────────── */
     .inline-kicker {
-        color: var(--muted);
-        font-size: 0.76rem;
-        letter-spacing: 0.12em;
+        color: var(--faint);
+        font-size: 0.74rem;
+        letter-spacing: 0.16em;
         text-transform: uppercase;
         margin-bottom: 0.4rem;
-    }
-
-    .control-row-gap {
-        height: 0.25rem;
+        font-weight: 600;
     }
 
     .control-caption {
         color: var(--muted);
-        font-size: 0.78rem;
+        font-size: 0.76rem;
         min-height: 1.15rem;
         margin-bottom: 0.32rem;
         display: flex;
         align-items: center;
         font-weight: 600;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.04em;
     }
 
+    .control-action-group {
+        height: 0.35rem;
+    }
+
+    /* ── 面板卡片 ──────────────────────────────── */
     .section-card {
-        background:
-            linear-gradient(180deg, color-mix(in srgb, var(--panel) 98%, white 2%), color-mix(in srgb, var(--panel-2) 98%, transparent));
-        border: 1px solid color-mix(in srgb, var(--gold) 14%, var(--line));
-        border-radius: 14px;
-        padding: 0.9rem;
+        background: linear-gradient(180deg, rgba(22, 27, 35, 0.82), rgba(16, 20, 27, 0.62));
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 1rem 1.05rem;
         margin-bottom: 0.9rem;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 10px 24px rgba(0,0,0,0.04);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.035),
+            0 16px 36px rgba(0, 0, 0, 0.3);
     }
 
     .section-title {
-        color: var(--gold);
-        font-size: 0.92rem;
+        color: var(--gold-bright);
+        font-family: "Noto Serif SC", "Songti SC", serif;
+        font-size: 1rem;
         margin-bottom: 0.6rem;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.1em;
         font-weight: 700;
     }
 
+    /* 快讯面板 */
     .flash-section-card {
         background:
-            linear-gradient(180deg, color-mix(in srgb, var(--gold-soft) 20%, white 80%), color-mix(in srgb, var(--panel) 96%, white 4%));
-        border-color: color-mix(in srgb, var(--gold) 28%, var(--line));
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 14px 28px rgba(88, 58, 25, 0.06);
+            linear-gradient(135deg, rgba(201, 168, 106, 0.09), transparent 42%),
+            linear-gradient(180deg, rgba(24, 29, 38, 0.88), rgba(16, 20, 27, 0.7));
+        border: 1px solid rgba(201, 168, 106, 0.22);
         position: relative;
         overflow: hidden;
+        margin-bottom: 0.6rem;
     }
 
     .flash-section-card::before {
@@ -181,7 +173,7 @@ def get_dashboard_css() -> str:
         top: 0;
         bottom: 0;
         width: 4px;
-        background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 92%, white 8%), color-mix(in srgb, #d88f2f 72%, transparent));
+        background: linear-gradient(180deg, var(--gold-bright), rgba(201, 168, 106, 0.25));
     }
 
     .flash-section-head {
@@ -191,19 +183,20 @@ def get_dashboard_css() -> str:
         gap: 0.8rem;
         margin-bottom: 0.7rem;
         padding-bottom: 0.45rem;
-        border-bottom: 1px solid color-mix(in srgb, var(--gold) 16%, var(--line));
+        border-bottom: 1px solid rgba(201, 168, 106, 0.16);
     }
 
     .flash-section-title {
         margin-bottom: 0;
-        color: color-mix(in srgb, var(--gold) 92%, #8d5d14 8%);
-        letter-spacing: 0.06em;
+        color: var(--gold-bright);
+        letter-spacing: 0.08em;
     }
 
     .flash-section-note {
-        color: color-mix(in srgb, var(--text) 62%, var(--muted));
-        font-size: 0.73rem;
+        color: var(--faint);
+        font-size: 0.72rem;
         white-space: nowrap;
+        letter-spacing: 0.02em;
     }
 
     .flash-list {
@@ -213,9 +206,9 @@ def get_dashboard_css() -> str:
     }
 
     .flash-list li {
-        padding: 0.56rem 0 0.62rem 0.26rem;
-        font-size: 0.95rem;
-        border-bottom: 1px solid color-mix(in srgb, var(--gold) 10%, var(--line));
+        padding: 0.6rem 0 0.64rem 0.3rem;
+        font-size: 0.98rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         position: relative;
     }
 
@@ -226,21 +219,21 @@ def get_dashboard_css() -> str:
     .flash-item::before {
         content: "";
         position: absolute;
-        left: -0.88rem;
-        top: 0.72rem;
-        bottom: 0.74rem;
-        width: 3px;
+        left: -0.9rem;
+        top: 0.78rem;
+        bottom: 0.8rem;
+        width: 2px;
         border-radius: 999px;
-        background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 85%, white 15%), color-mix(in srgb, var(--gold) 35%, transparent));
-        opacity: 0.9;
+        background: linear-gradient(180deg, var(--gold-bright), rgba(201, 168, 106, 0.2));
+        opacity: 0.85;
     }
 
     .flash-title {
         color: var(--text);
-        font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
-        font-size: 1.06rem;
+        font-family: "Noto Serif SC", "Songti SC", serif;
+        font-size: 1.08rem;
         font-weight: 700;
-        line-height: 1.52;
+        line-height: 1.55;
     }
 
     .flash-meta {
@@ -251,33 +244,35 @@ def get_dashboard_css() -> str:
         margin-left: 0.55rem;
     }
 
+    /* ── Feed 卡片 ─────────────────────────────── */
     .feed-card {
         position: relative;
-        border-top: 1px solid color-mix(in srgb, var(--gold) 10%, var(--line));
-        padding: 0.52rem 0.08rem 0.56rem 0.24rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.055);
+        border-radius: 14px;
+        padding: 0.62rem 0.1rem 0.66rem 0.28rem;
         margin-top: 0.02rem;
-        transition: background 120ms ease, transform 120ms ease, border-color 120ms ease;
-        border-radius: 12px;
-        background: color-mix(in srgb, var(--panel) 42%, transparent);
+        background: rgba(255, 255, 255, 0.012);
+        transition: background 140ms ease, transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
     }
 
     .feed-card:hover {
-        background: linear-gradient(180deg, color-mix(in srgb, var(--gold-soft) 52%, white 48%), color-mix(in srgb, var(--panel) 92%, white 8%));
+        background:
+            linear-gradient(180deg, rgba(201, 168, 106, 0.07), rgba(255, 255, 255, 0.015) 70%);
         transform: translateY(-1px);
-        border-color: color-mix(in srgb, var(--gold) 30%, var(--line));
-        box-shadow: 0 10px 24px rgba(88, 58, 25, 0.08), inset 0 1px 0 rgba(255,255,255,0.22);
+        border-color: rgba(201, 168, 106, 0.3);
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
     }
 
     .feed-card::before {
         content: "";
         position: absolute;
         left: 0;
-        top: 0.68rem;
-        bottom: 0.68rem;
+        top: 0.78rem;
+        bottom: 0.78rem;
         width: 2px;
         border-radius: 999px;
         background: transparent;
-        transition: background 120ms ease, opacity 120ms ease;
+        transition: background 140ms ease, opacity 140ms ease;
         opacity: 0;
     }
 
@@ -287,99 +282,105 @@ def get_dashboard_css() -> str:
     }
 
     .feed-card.priority-medium::before {
-        background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 65%, white 12%), color-mix(in srgb, var(--gold) 28%, transparent));
+        background: linear-gradient(180deg, rgba(201, 168, 106, 0.75), rgba(201, 168, 106, 0.2));
     }
 
     .feed-card.priority-high::before {
         width: 3px;
-        background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 92%, white 8%), color-mix(in srgb, #cf9f42 68%, transparent));
+        background: linear-gradient(180deg, var(--gold-bright), rgba(201, 168, 106, 0.35));
     }
 
     .feed-layout {
         display: grid;
-        grid-template-columns: 56px 1fr;
-        gap: 0.78rem;
+        grid-template-columns: 60px 1fr;
+        gap: 0.8rem;
         align-items: start;
     }
 
     .time-col {
-        color: var(--muted);
-        font-size: 0.72rem;
+        color: var(--faint);
+        font-size: 0.7rem;
         text-align: right;
-        padding-top: 0.08rem;
-        border-right: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
-        padding-right: 0.72rem;
+        padding-top: 0.12rem;
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
+        padding-right: 0.78rem;
     }
 
     .time-main {
-        color: color-mix(in srgb, var(--text) 78%, var(--muted));
-        font-size: 0.92rem;
+        color: var(--gold);
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-size: 1.18rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
     }
 
     .feed-title {
-        color: var(--text);
-        font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
-        font-size: 1.3rem;
-        line-height: 1.24;
+        color: #f2ecdd;
+        font-family: "Noto Serif SC", "Songti SC", serif;
+        font-size: 1.28rem;
+        line-height: 1.3;
         font-weight: 700;
-        margin: 0.02rem 0 0.16rem;
-        letter-spacing: 0.005em;
+        margin: 0.04rem 0 0.2rem;
+        letter-spacing: 0.01em;
     }
 
     .feed-title-zh {
-        color: color-mix(in srgb, var(--gold) 90%, var(--text));
-        font-size: 1rem;
-        line-height: 1.25;
-        margin: 0.05rem 0 0.18rem;
+        color: var(--gold-bright);
+        font-family: "Noto Serif SC", "Songti SC", serif;
+        font-size: 1.02rem;
+        line-height: 1.3;
+        margin: 0.06rem 0 0.2rem;
         font-weight: 700;
-        letter-spacing: 0.01em;
+        letter-spacing: 0.015em;
     }
 
     .meta-line {
         color: var(--muted);
-        font-size: 0.78rem;
-        margin-bottom: 0.28rem;
-        letter-spacing: 0.01em;
+        font-size: 0.74rem;
+        margin-bottom: 0.26rem;
+        letter-spacing: 0.03em;
     }
 
     .badge-row {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.28rem;
-        margin-bottom: 0.36rem;
+        gap: 0.3rem;
+        margin-bottom: 0.4rem;
     }
 
     .badge {
         display: inline-flex;
         align-items: center;
-        border: 1px solid color-mix(in srgb, var(--gold) 32%, transparent);
-        background: color-mix(in srgb, var(--gold-soft) 68%, white 32%);
-        color: color-mix(in srgb, var(--gold) 85%, var(--text));
+        border: 1px solid rgba(201, 168, 106, 0.3);
+        background: rgba(201, 168, 106, 0.08);
+        color: var(--gold-bright);
         border-radius: 999px;
-        font-size: 0.68rem;
-        padding: 0.1rem 0.38rem;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+        font-size: 0.66rem;
+        font-weight: 500;
+        padding: 0.1rem 0.42rem;
+        letter-spacing: 0.03em;
     }
 
     .badge.source {
-        background: color-mix(in srgb, #4f6ea9 10%, white 90%);
-        border-color: color-mix(in srgb, #4f6ea9 24%, transparent);
-        color: color-mix(in srgb, #4f6ea9 82%, var(--text));
+        background: rgba(96, 130, 200, 0.12);
+        border-color: rgba(96, 130, 200, 0.32);
+        color: #a8bde0;
     }
 
     .badge.duplicate {
-        background: color-mix(in srgb, var(--red) 8%, white 92%);
-        border-color: color-mix(in srgb, var(--red) 28%, transparent);
-        color: color-mix(in srgb, var(--red) 80%, var(--text));
+        background: rgba(217, 122, 134, 0.1);
+        border-color: rgba(217, 122, 134, 0.3);
+        color: #d99aa2;
     }
 
+    /* 摘要：刻意弱化，与标题形成强对比 */
     .summary-text {
-        color: color-mix(in srgb, var(--text) 84%, var(--muted));
-        font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
-        font-size: 0.95rem;
-        line-height: 1.4;
-        font-weight: 500;
-        margin-bottom: 0.28rem;
+        color: var(--faint);
+        font-family: "Noto Serif SC", "Songti SC", serif;
+        font-size: 0.88rem;
+        line-height: 1.55;
+        font-weight: 400;
+        margin-bottom: 0.3rem;
     }
 
     .feed-footer {
@@ -387,23 +388,26 @@ def get_dashboard_css() -> str:
         justify-content: space-between;
         align-items: center;
         gap: 0.5rem;
-        color: var(--muted);
-        font-size: 0.76rem;
+        color: var(--faint);
+        font-size: 0.74rem;
     }
 
     .score-chip {
-        color: color-mix(in srgb, var(--gold) 88%, var(--text));
-        font-size: 0.74rem;
+        color: var(--gold-bright);
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-size: 0.82rem;
+        font-weight: 600;
         border-radius: 999px;
-        padding: 0.08rem 0.32rem;
-        background: color-mix(in srgb, var(--gold-soft) 46%, white 54%);
-        border: 1px solid color-mix(in srgb, var(--gold) 18%, transparent);
+        padding: 0.06rem 0.38rem;
+        background: rgba(201, 168, 106, 0.09);
+        border: 1px solid rgba(201, 168, 106, 0.22);
     }
 
+    /* ── 侧栏 ──────────────────────────────────── */
     .side-list {
         display: flex;
         flex-direction: column;
-        gap: 0.55rem;
+        gap: 0.6rem;
     }
 
     .side-row {
@@ -411,19 +415,22 @@ def get_dashboard_css() -> str:
         justify-content: space-between;
         align-items: flex-start;
         gap: 0.7rem;
-        color: color-mix(in srgb, var(--text) 92%, var(--muted));
-        font-size: 0.88rem;
+        color: color-mix(in srgb, var(--text) 88%, transparent);
+        font-size: 0.86rem;
     }
 
     .side-sub {
-        color: var(--muted);
-        font-size: 0.72rem;
+        color: var(--faint);
+        font-size: 0.7rem;
         margin-left: 1rem;
         margin-top: 0.14rem;
     }
 
     .side-count {
-        color: color-mix(in srgb, var(--gold) 88%, var(--text));
+        color: var(--gold);
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-size: 0.92rem;
+        font-weight: 600;
         white-space: nowrap;
         padding-top: 0.05rem;
     }
@@ -435,23 +442,23 @@ def get_dashboard_css() -> str:
         border-radius: 50%;
         margin-right: 0.5rem;
         background: var(--green);
-        box-shadow: 0 0 0 4px rgba(119, 210, 187, 0.08);
+        box-shadow: 0 0 0 4px rgba(76, 191, 160, 0.09);
     }
 
     .side-dot.lagging {
-        background: #e2c26f;
-        box-shadow: 0 0 0 4px rgba(226, 194, 111, 0.08);
+        background: #d8b45e;
+        box-shadow: 0 0 0 4px rgba(216, 180, 94, 0.09);
     }
 
     .side-dot.idle {
         background: var(--gold);
-        box-shadow: 0 0 0 4px rgba(194, 164, 107, 0.08);
+        box-shadow: 0 0 0 4px rgba(201, 168, 106, 0.09);
     }
 
     .mono-note {
         color: var(--muted);
-        font-size: 0.82rem;
-        line-height: 1.65;
+        font-size: 0.8rem;
+        line-height: 1.75;
     }
 
     .topic-wrap {
@@ -464,105 +471,95 @@ def get_dashboard_css() -> str:
         display: inline-flex;
         align-items: center;
         gap: 0.35rem;
-        background: color-mix(in srgb, var(--panel-2) 95%, white 5%);
-        border: 1px solid color-mix(in srgb, var(--gold) 20%, transparent);
-        color: color-mix(in srgb, var(--text) 88%, var(--muted));
+        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid rgba(201, 168, 106, 0.2);
+        color: color-mix(in srgb, var(--text) 86%, transparent);
         border-radius: 999px;
-        padding: 0.2rem 0.55rem;
-        font-size: 0.76rem;
+        padding: 0.22rem 0.58rem;
+        font-size: 0.74rem;
     }
 
     .topic-chip strong {
-        color: color-mix(in srgb, var(--gold) 88%, var(--text));
-        font-weight: 700;
+        color: var(--gold-bright);
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-weight: 600;
     }
 
     .feed-link {
-        color: color-mix(in srgb, var(--gold) 88%, #8d6a26 12%);
+        color: var(--gold-bright);
         text-decoration: none;
         display: inline-flex;
         align-items: center;
         gap: 0.2rem;
-        padding: 0.1rem 0.42rem;
+        padding: 0.1rem 0.45rem;
         border-radius: 999px;
-        border: 1px solid color-mix(in srgb, var(--gold) 20%, transparent);
-        background: color-mix(in srgb, var(--gold-soft) 38%, white 62%);
+        border: 1px solid rgba(201, 168, 106, 0.25);
+        background: rgba(201, 168, 106, 0.07);
+        font-size: 0.72rem;
     }
 
     .feed-link:hover {
-        color: color-mix(in srgb, var(--gold) 72%, #7b5a1c 28%);
-        border-color: color-mix(in srgb, var(--gold) 36%, transparent);
-        background: color-mix(in srgb, var(--gold-soft) 58%, white 42%);
+        color: #f0d9a8;
+        border-color: rgba(201, 168, 106, 0.45);
+        background: rgba(201, 168, 106, 0.13);
     }
 
-    .toolbar-note {
-        color: var(--muted);
-        font-size: 0.78rem;
-        text-align: right;
-        padding-top: 0.1rem;
-        min-height: 1.35rem;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-    }
-
+    /* ── 统计面板 ──────────────────────────────── */
     .stat-panel {
-        min-height: 48px;
-        background: var(--panel);
+        min-height: 52px;
+        background: rgba(255, 255, 255, 0.03);
         border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 0.75rem 0.95rem;
+        border-radius: 12px;
+        padding: 0.7rem 0.95rem;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: flex-start;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.015);
-        gap: 0.28rem;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        gap: 0.3rem;
     }
 
     .stat-label {
-        color: var(--muted);
-        font-size: 0.82rem;
+        color: var(--faint);
+        font-size: 0.76rem;
         font-weight: 500;
         margin-bottom: 0;
         text-align: left;
+        letter-spacing: 0.06em;
     }
 
     .stat-value {
-        color: var(--text);
-        font-size: 1.05rem;
+        color: var(--gold-bright);
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-size: 1.45rem;
         line-height: 1;
-        font-family: "Noto Sans SC", sans-serif;
-        font-weight: 700;
+        font-weight: 600;
         text-align: left;
     }
 
-    .control-action-group {
-        height: 0.35rem;
-    }
-
+    /* ── Streamlit 原生控件暗色化 ──────────────── */
     div[data-testid="stButton"] button {
         border-radius: 10px;
-        border: 1px solid color-mix(in srgb, var(--gold) 38%, transparent);
-        background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 86%, white 14%), color-mix(in srgb, var(--gold) 84%, black 16%));
-        color: color-mix(in srgb, var(--background-color) 30%, black 70%);
+        border: 1px solid rgba(201, 168, 106, 0.45);
+        background: linear-gradient(180deg, #d9b877, #b58f4e);
+        color: #14100a;
         font-weight: 700;
         min-height: 3rem;
         margin-top: 0;
         width: 100%;
-        box-shadow: 0 8px 18px color-mix(in srgb, var(--gold) 18%, transparent);
+        box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
     }
 
     div[data-testid="stButton"] button:hover {
-        border-color: color-mix(in srgb, var(--gold) 60%, transparent);
-        background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 92%, white 8%), color-mix(in srgb, var(--gold) 80%, black 20%));
-        color: color-mix(in srgb, var(--background-color) 20%, black 80%);
+        border-color: rgba(224, 194, 138, 0.7);
+        background: linear-gradient(180deg, #e6c683, #c19a58);
+        color: #0e0b06;
     }
 
     div[data-testid="stTextInput"] input,
     div[data-testid="stSelectbox"] div[data-baseweb="select"],
     div[data-testid="stNumberInput"] input {
-        background: color-mix(in srgb, var(--panel) 94%, white 6%);
+        background: rgba(255, 255, 255, 0.045);
         border-color: var(--line);
         color: var(--text);
         min-height: 3rem;
@@ -570,27 +567,27 @@ def get_dashboard_css() -> str:
     }
 
     div[data-testid="stRadio"] label {
-        background: color-mix(in srgb, var(--panel) 94%, white 6%);
+        background: rgba(255, 255, 255, 0.035);
         border: 1px solid var(--line);
         border-radius: 10px;
         padding: 0.2rem 0.55rem;
         margin-right: 0.35rem;
         min-height: 34px;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.01);
+        color: var(--muted);
     }
 
     div[data-testid="stRadio"] label:has(input:checked) {
-        border-color: rgba(194, 164, 107, 0.42);
-        background: rgba(194, 164, 107, 0.14);
-        box-shadow: inset 0 0 0 1px rgba(194, 164, 107, 0.16);
-        color: #f4e8c8;
+        border-color: rgba(201, 168, 106, 0.55);
+        background: rgba(201, 168, 106, 0.12);
+        box-shadow: inset 0 0 0 1px rgba(201, 168, 106, 0.18);
+        color: var(--gold-bright);
     }
 
     div[data-testid="stSelectbox"] label,
     div[data-testid="stTextInput"] label,
     div[data-testid="stToggle"] label {
         color: var(--muted);
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         min-height: 1.1rem;
         margin-bottom: 0.32rem;
         display: block;
@@ -608,59 +605,31 @@ def get_dashboard_css() -> str:
         justify-content: flex-end;
     }
 
-    div[data-testid="stToggle"] {
-        min-height: 3rem;
-        display: flex;
-        align-items: stretch;
-        padding-top: 0.1rem;
-        border: 1px solid color-mix(in srgb, var(--gold) 38%, transparent);
-        border-radius: 10px;
-        background: linear-gradient(180deg, color-mix(in srgb, var(--gold-soft) 55%, white 6%), color-mix(in srgb, var(--panel) 96%, transparent));
-        padding-left: 0.85rem;
-        padding-right: 0.85rem;
-        box-shadow: 0 8px 18px color-mix(in srgb, var(--gold) 10%, transparent);
-    }
-
-    div[data-testid="stToggle"] > label {
-        width: 100%;
-        display: flex !important;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.8rem;
-        margin-bottom: 0 !important;
-        color: var(--text) !important;
-        font-weight: 700;
-        font-size: 0.95rem !important;
-    }
-
-    div[data-testid="stSelectbox"] > div[data-baseweb="select"] {
-        margin-top: 0;
-    }
-
     details[data-testid="stExpander"] {
-        background: linear-gradient(180deg, color-mix(in srgb, var(--panel) 96%, white 4%), color-mix(in srgb, var(--panel-2) 96%, transparent));
-        border: 1px solid color-mix(in srgb, var(--gold) 16%, var(--line));
+        background: linear-gradient(180deg, rgba(22, 27, 35, 0.85), rgba(16, 20, 27, 0.65));
+        border: 1px solid rgba(201, 168, 106, 0.16);
         border-radius: 14px;
         margin-bottom: 0.8rem;
         overflow: hidden;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
     }
 
     details[data-testid="stExpander"] summary {
-        padding: 0.78rem 0.95rem;
+        padding: 0.82rem 0.95rem;
         color: var(--text);
         font-weight: 700;
-        letter-spacing: 0.01em;
+        letter-spacing: 0.02em;
     }
 
     details[data-testid="stExpander"] summary:hover {
-        background: color-mix(in srgb, var(--gold-soft) 35%, transparent);
+        background: rgba(201, 168, 106, 0.06);
     }
 
     details[data-testid="stExpander"] > div[role="region"] {
         padding: 0 0.95rem 0.85rem;
     }
 
+    /* ── 响应式 ─────────────────────────────────── */
     @media (max-width: 900px) {
         .block-container {
             padding-top: 1rem;
@@ -670,7 +639,7 @@ def get_dashboard_css() -> str:
 
         .hero-bar {
             min-height: auto;
-            padding: 0.9rem 0.85rem;
+            padding: 0.95rem 0.9rem;
             margin-bottom: 0.6rem;
             flex-direction: column;
             align-items: flex-start;
@@ -681,51 +650,54 @@ def get_dashboard_css() -> str:
         }
 
         .brand-title {
-            font-size: 1.62rem;
-            line-height: 1.7;
-            padding-top: 0.22rem;
-            padding-bottom: 0.22rem;
+            font-size: 1.7rem;
+            line-height: 1.55;
+            padding-top: 0.18rem;
+            padding-bottom: 0.18rem;
             min-height: 2.1em;
         }
 
         .brand-sub {
-            letter-spacing: 0.16em;
+            letter-spacing: 0.26em;
         }
 
         .market-clock {
-            font-size: 0.82rem;
-            letter-spacing: 0.03em;
+            font-size: 0.9rem;
+            letter-spacing: 0.06em;
         }
     }
 
     @media (max-width: 640px) {
         .feed-layout {
-            grid-template-columns: 46px 1fr;
+            grid-template-columns: 48px 1fr;
             gap: 0.58rem;
         }
 
         .time-col {
-            font-size: 0.68rem;
-            padding-right: 0.52rem;
+            font-size: 0.66rem;
+            padding-right: 0.56rem;
         }
 
         .time-main {
-            font-size: 0.82rem;
+            font-size: 1.04rem;
         }
 
         .feed-title {
-            font-size: 1.02rem;
-            line-height: 1.16;
+            font-size: 1.06rem;
+            line-height: 1.24;
         }
 
         .meta-line,
-        .summary-text,
         .feed-footer {
-            font-size: 0.85rem;
+            font-size: 0.72rem;
+        }
+
+        .summary-text {
+            font-size: 0.84rem;
         }
 
         .flash-list li {
-            font-size: 0.98rem;
+            font-size: 0.94rem;
         }
 
         .flash-section-head {
@@ -735,13 +707,13 @@ def get_dashboard_css() -> str:
         }
 
         .section-card {
-            padding: 0.75rem;
+            padding: 0.8rem;
             margin-bottom: 0.75rem;
         }
 
         .stat-panel {
-            min-height: 44px;
-            padding: 0 0.8rem;
+            min-height: 46px;
+            padding: 0 0.85rem;
         }
 
         div[data-testid="stButton"] button,
