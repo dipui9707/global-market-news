@@ -13,3 +13,6 @@ tmp_*/
 yuan.py
 
 线上运维.txt
+
+.env.bak-*
+.venv/
