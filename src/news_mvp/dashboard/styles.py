@@ -206,7 +206,7 @@ def get_dashboard_css() -> str:
     }
 
     .flash-list li {
-        padding: 0.6rem 0 0.64rem 0.3rem;
+        padding: 0.78rem 0 0.84rem 0.3rem;
         font-size: 0.98rem;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         position: relative;
@@ -216,24 +216,12 @@ def get_dashboard_css() -> str:
         border-bottom: none;
     }
 
-    .flash-item::before {
-        content: "";
-        position: absolute;
-        left: -0.9rem;
-        top: 0.78rem;
-        bottom: 0.8rem;
-        width: 2px;
-        border-radius: 999px;
-        background: linear-gradient(180deg, var(--gold-bright), rgba(201, 168, 106, 0.2));
-        opacity: 0.85;
-    }
-
     .flash-title {
         color: var(--text);
         font-family: "Noto Serif SC", "Songti SC", serif;
         font-size: 1.08rem;
         font-weight: 700;
-        line-height: 1.55;
+        line-height: 1.8;
     }
 
     .flash-meta {
@@ -249,7 +237,7 @@ def get_dashboard_css() -> str:
         position: relative;
         border-top: 1px solid rgba(255, 255, 255, 0.055);
         border-radius: 14px;
-        padding: 0.62rem 0.1rem 0.66rem 0.28rem;
+        padding: 0.85rem 0.12rem 0.9rem 0.32rem;
         margin-top: 0.02rem;
         background: rgba(255, 255, 255, 0.012);
         transition: background 140ms ease, transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
@@ -293,7 +281,7 @@ def get_dashboard_css() -> str:
     .feed-layout {
         display: grid;
         grid-template-columns: 60px 1fr;
-        gap: 0.8rem;
+        gap: 1.05rem;
         align-items: start;
     }
 
@@ -318,9 +306,9 @@ def get_dashboard_css() -> str:
         color: #f2ecdd;
         font-family: "Noto Serif SC", "Songti SC", serif;
         font-size: 1.28rem;
-        line-height: 1.3;
+        line-height: 1.52;
         font-weight: 700;
-        margin: 0.04rem 0 0.2rem;
+        margin: 0.06rem 0 0.34rem;
         letter-spacing: 0.01em;
     }
 
@@ -328,8 +316,8 @@ def get_dashboard_css() -> str:
         color: var(--gold-bright);
         font-family: "Noto Serif SC", "Songti SC", serif;
         font-size: 1.02rem;
-        line-height: 1.3;
-        margin: 0.06rem 0 0.2rem;
+        line-height: 1.52;
+        margin: 0.08rem 0 0.34rem;
         font-weight: 700;
         letter-spacing: 0.015em;
     }
@@ -337,15 +325,15 @@ def get_dashboard_css() -> str:
     .meta-line {
         color: var(--muted);
         font-size: 0.74rem;
-        margin-bottom: 0.26rem;
-        letter-spacing: 0.03em;
+        margin-bottom: 0.42rem;
+        letter-spacing: 0.04em;
     }
 
     .badge-row {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.3rem;
-        margin-bottom: 0.4rem;
+        gap: 0.32rem;
+        margin-bottom: 0.56rem;
     }
 
     .badge {
@@ -378,9 +366,9 @@ def get_dashboard_css() -> str:
         color: var(--faint);
         font-family: "Noto Serif SC", "Songti SC", serif;
         font-size: 0.88rem;
-        line-height: 1.55;
+        line-height: 1.85;
         font-weight: 400;
-        margin-bottom: 0.3rem;
+        margin-bottom: 0.44rem;
     }
 
     .feed-footer {
@@ -684,7 +672,7 @@ def get_dashboard_css() -> str:
 
         .feed-title {
             font-size: 1.06rem;
-            line-height: 1.24;
+            line-height: 1.48;
         }
 
         .meta-line,
@@ -694,10 +682,12 @@ def get_dashboard_css() -> str:
 
         .summary-text {
             font-size: 0.84rem;
+            line-height: 1.8;
         }
 
         .flash-list li {
             font-size: 0.94rem;
+            line-height: 1.75;
         }
 
         .flash-section-head {
