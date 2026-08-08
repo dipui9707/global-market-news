@@ -120,11 +120,6 @@ def render_dashboard(settings: Settings) -> None:
         sort_by=sort_by,
         selected_source=selected_source,
     )
-    visible_count = min(
-        int(st.session_state.get("feed_visible_count", max(settings.default_page_size, INITIAL_FEED_PAGE_SIZE))),
-        settings.article_retention_count,
-    )
-
     source_status_rows = load_source_status(settings, hours=hours)
     source_status_map = {row.source: row for row in source_status_rows}
     source_status = []
@@ -136,20 +131,30 @@ def render_dashboard(settings: Settings) -> None:
         else:
             source_status.append(row)
     topic_pulse = load_topic_pulse(settings, hours=hours, limit=8)
-    articles = load_article_feed(
-        settings,
-        hours=hours,
-        topic=None if topic == "全部" else topic,
-        region=None if region == "全部" else region,
-        source=None if selected_source == "全部" else selected_source,
-        search=search or None,
-        sort_by=sort_by,
-        limit=visible_count,
+
+    # 主 feed 区块：定时局部自动刷新（类似金十的增量更新，不整页刷新）
+    run_every = (
+        max(int(settings.auto_update_interval_seconds), 60)
+        if settings.auto_update_enabled
+        else None
     )
 
-    main_col, side_col = st.columns([4.8, 1.45], gap="large")
-
-    with main_col:
+    @st.fragment(run_every=run_every)
+    def _render_feed_section():
+        visible_count = min(
+            int(st.session_state.get("feed_visible_count", max(settings.default_page_size, INITIAL_FEED_PAGE_SIZE))),
+            settings.article_retention_count,
+        )
+        articles = load_article_feed(
+            settings,
+            hours=hours,
+            topic=None if topic == "全部" else topic,
+            region=None if region == "全部" else region,
+            source=None if selected_source == "全部" else selected_source,
+            search=search or None,
+            sort_by=sort_by,
+            limit=visible_count,
+        )
         for article in articles:
             render_feed_item(article)
         if articles:
@@ -163,6 +168,11 @@ def render_dashboard(settings: Settings) -> None:
                     st.rerun()
         if not articles:
             st.info("当前筛选条件下暂无结果，请调整来源、主题、区域或时间窗口。")
+
+    main_col, side_col = st.columns([4.8, 1.45], gap="large")
+
+    with main_col:
+        _render_feed_section()
 
     with side_col:
         render_source_status_panel(source_status)
