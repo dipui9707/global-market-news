@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from dataclasses import replace
 import json
 import re
 
@@ -37,10 +38,41 @@ def should_translate_title(*, title: str, language: str | None, existing_transla
 def translate_text(text: str, settings: Settings) -> str | None:
     if not translation_is_configured(settings):
         return None
+    try:
+        if settings.translation_provider == "deepl":
+            result = _translate_with_deepl(text, settings)
+        else:
+            result = _translate_with_openai_compatible(text, settings)
+    except requests.RequestException:
+        result = None
+    if result:
+        return result
+    return _translate_fallback_text(text, settings)
 
-    if settings.translation_provider == "deepl":
-        return _translate_with_deepl(text, settings)
-    return _translate_with_openai_compatible(text, settings)
+
+def _fallback_settings(settings: Settings) -> Settings | None:
+    """若配置了备用翻译，返回构造好的备用 Settings；否则 None。"""
+    if not settings.fallback_api_key:
+        return None
+    return replace(
+        settings,
+        translation_provider=(settings.fallback_provider or "deepl").lower(),
+        translation_api_key=settings.fallback_api_key,
+        translation_base_url=settings.fallback_base_url or settings.translation_base_url,
+        translation_target_lang=settings.fallback_target_lang or settings.translation_target_lang,
+    )
+
+
+def _translate_fallback_text(text: str, settings: Settings) -> str | None:
+    fallback = _fallback_settings(settings)
+    if fallback is None:
+        return None
+    try:
+        if fallback.translation_provider == "deepl":
+            return _translate_with_deepl(text, fallback)
+        return _translate_with_openai_compatible(text, fallback)
+    except requests.RequestException:
+        return None
 
 
 def _translate_with_deepl(text: str, settings: Settings) -> str | None:
@@ -140,8 +172,18 @@ def translate_titles_batch(titles: list[str], settings: Settings) -> list[str | 
     if not translation_is_configured(settings) or not titles:
         return [None] * len(titles)
     if settings.translation_provider == "deepl":
-        return _batch_with_deepl(titles, settings)
-    return _batch_with_openai(titles, settings)
+        primary = _batch_with_deepl(titles, settings)
+    else:
+        primary = _batch_with_openai(titles, settings)
+    if any(primary):
+        return primary
+    # 主翻译整批失败 → 备用翻译
+    fallback = _fallback_settings(settings)
+    if fallback is None:
+        return primary
+    if fallback.translation_provider == "deepl":
+        return _batch_with_deepl(titles, fallback)
+    return _batch_with_openai(titles, fallback)
 
 
 def _batch_with_deepl(titles: list[str], settings: Settings) -> list[str | None]:

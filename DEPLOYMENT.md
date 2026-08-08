@@ -143,6 +143,10 @@ jobs:
 | `TRANSLATION_SOURCE_LANG` | `auto` | 源语言（auto 自动检测） |
 | `TRANSLATION_TARGET_LANG` | `ZH` | 目标语言（DeepL 用 `ZH` / `ZH-HANS`） |
 | `TRANSLATION_MAX_ITEMS_PER_RUN` | `10` | 每次抓取最多翻译条数（控制额度） |
+| `TRANSLATION_FALLBACK_PROVIDER` | `deepl` | 备用翻译服务（主翻译失败时自动切换） |
+| `TRANSLATION_FALLBACK_API_KEY` | （空） | 备用翻译 API Key |
+| `TRANSLATION_FALLBACK_BASE_URL` | `https://api-free.deepl.com/v2/translate` | 备用端点 |
+| `TRANSLATION_FALLBACK_TARGET_LANG` | `ZH` | 备用目标语言 |
 | `STORY_DEDUP_LOOKBACK_HOURS` | `36` | 故事聚合去重的回看窗口 |
 | `MKTNEWS_LIVE_CACHE_PATH` | `data/mktnews_live_en.json` | MktNews 实时缓存文件 |
 | `MKTNEWS_LIVE_CACHE_MAX_ITEMS` | `500` | 实时缓存最大条数 |

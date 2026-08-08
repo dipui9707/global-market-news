@@ -35,6 +35,11 @@ class Settings:
     story_dedup_lookback_hours: int
     mktnews_live_cache_path: str
     mktnews_live_cache_max_items: int
+    # 备用翻译（主翻译失败时自动切换）
+    fallback_provider: str | None
+    fallback_api_key: str | None
+    fallback_base_url: str | None
+    fallback_target_lang: str | None
 
     @property
     def database_path(self) -> Path:
@@ -73,4 +78,8 @@ def get_settings() -> Settings:
         story_dedup_lookback_hours=int(os.getenv("STORY_DEDUP_LOOKBACK_HOURS", "36")),
         mktnews_live_cache_path=os.getenv("MKTNEWS_LIVE_CACHE_PATH", "data/mktnews_live_en.json"),
         mktnews_live_cache_max_items=int(os.getenv("MKTNEWS_LIVE_CACHE_MAX_ITEMS", "500")),
+        fallback_provider=os.getenv("TRANSLATION_FALLBACK_PROVIDER") or None,
+        fallback_api_key=os.getenv("TRANSLATION_FALLBACK_API_KEY") or None,
+        fallback_base_url=os.getenv("TRANSLATION_FALLBACK_BASE_URL") or None,
+        fallback_target_lang=os.getenv("TRANSLATION_FALLBACK_TARGET_LANG") or None,
     )
