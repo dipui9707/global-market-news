@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
-import requests
 from uuid import uuid4
 
 from news_mvp.collectors import (
@@ -38,6 +37,7 @@ from news_mvp.db import (
     link_article_event,
     prune_articles,
     replace_article_tags,
+    update_article_translations,
     upsert_article,
     upsert_event,
 )
@@ -47,7 +47,11 @@ from news_mvp.pipeline.dedup import build_story_key, fingerprint_text, make_arti
 from news_mvp.pipeline.scoring import score_article
 from news_mvp.pipeline.summarizer import summarize_text
 from news_mvp.pipeline.tagging import infer_tags
-from news_mvp.pipeline.translator import should_translate_title, translate_title, translation_is_configured
+from news_mvp.pipeline.translator import (
+    should_translate_title,
+    translate_titles_batch,
+    translation_is_configured,
+)
 
 
 @dataclass(slots=True)
@@ -106,6 +110,7 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
 
     with connection_scope(settings) as connection:
         pending_translation_budget = settings.translation_max_items_per_run if translation_is_configured(settings) else 0
+        pending_translation_titles: list[tuple[str, str]] = []
         for payload in payloads:
             normalized_url = normalize_url(payload.url)
             article_id = make_article_id(payload.source, normalized_url)
@@ -180,13 +185,9 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
                     existing_translation=existing_title_zh,
                 )
             ):
-                try:
-                    title_zh = translate_title(payload.title, settings)
-                except requests.RequestException:
-                    title_zh = None
+                # 收集到批量翻译列表，循环结束后统一批量翻译
+                pending_translation_titles.append((article_id, payload.title))
                 pending_translation_budget -= 1
-                if title_zh:
-                    translated_count += 1
 
             importance = score_article(
                 source=payload.source,
@@ -249,6 +250,15 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
                 link_article_event(connection, article_id, event_id)
 
             stored_count += 1
+
+        # 循环结束后统一批量翻译，减少 API 请求次数
+        if pending_translation_titles:
+            batch_titles = [title for _, title in pending_translation_titles]
+            batch_results = translate_titles_batch(batch_titles, settings)
+            for (article_id, _), title_zh in zip(pending_translation_titles, batch_results):
+                if title_zh:
+                    update_article_translations(connection, article_id, title_zh=title_zh)
+                    translated_count += 1
 
         pruned_count = prune_articles(connection, settings.article_retention_count)
 

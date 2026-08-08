@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+import json
 import re
 
 import requests
@@ -128,6 +129,116 @@ def _translate_with_openai_compatible(text: str, settings: Settings) -> str | No
 
 def translate_title(title: str, settings: Settings) -> str | None:
     return translate_text(title, settings)
+
+
+def translate_titles_batch(titles: list[str], settings: Settings) -> list[str | None]:
+    """批量翻译多条标题，返回与输入等长的列表（失败项为 None）。
+
+    - DeepL：原生批量（一次请求多条）
+    - OpenAI 兼容：一次请求传入 JSON 数组，要求按序返回 JSON 数组；解析失败则回退逐条
+    """
+    if not translation_is_configured(settings) or not titles:
+        return [None] * len(titles)
+    if settings.translation_provider == "deepl":
+        return _batch_with_deepl(titles, settings)
+    return _batch_with_openai(titles, settings)
+
+
+def _batch_with_deepl(titles: list[str], settings: Settings) -> list[str | None]:
+    data: dict[str, object] = {
+        "text": titles,
+        "target_lang": settings.translation_target_lang,
+    }
+    source_lang = settings.translation_source_lang
+    if source_lang and source_lang.lower() not in {"auto", ""}:
+        data["source_lang"] = source_lang
+    try:
+        response = requests.post(
+            settings.translation_base_url,
+            headers={"Authorization": f"DeepL-Auth-Key {settings.translation_api_key}"},
+            data=data,
+            timeout=30,
+        )
+        response.raise_for_status()
+        results: list[str | None] = []
+        for item in (response.json().get("translations") or []):
+            results.append((item.get("text") or "").strip() or None)
+        return results
+    except requests.RequestException:
+        return [None] * len(titles)
+
+
+def _extract_json_array(content: str) -> list[str] | None:
+    """从模型输出中提取 JSON 字符串数组（容忍 ```json 代码块等）。"""
+    text = content.strip()
+    text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text, flags=re.S)
+    try:
+        data = json.loads(text)
+        if isinstance(data, list):
+            return [str(x) for x in data]
+    except (ValueError, TypeError):
+        pass
+    match = re.search(r"\[.*?\]", text, re.S)
+    if match:
+        try:
+            data = json.loads(match.group(0))
+            if isinstance(data, list):
+                return [str(x) for x in data]
+        except (ValueError, TypeError):
+            pass
+    return None
+
+
+def _batch_with_openai(titles: list[str], settings: Settings) -> list[str | None]:
+    # 特化的 qwen-mt 翻译接口不支持本批量协议，回退逐条
+    if settings.translation_model.startswith("qwen-mt-"):
+        return [translate_text(t, settings) for t in titles]
+    model_name = settings.translation_endpoint_id or settings.translation_model
+    payload = {
+        "model": model_name,
+        "temperature": 0.1,
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "你是专业财经新闻翻译助手。"
+                    "我会给你一个 JSON 数组，包含若干条英文新闻标题。"
+                    "请把每条翻译成简洁、准确、自然的简体中文财经标题。"
+                    "保留公司名、机构名、缩写、数字、货币、百分比、合约月份和专有名词。"
+                    "不要补充解释，不要扩写。"
+                    "必须输出一个 JSON 数组，长度与输入一致，顺序一致，每个元素是翻译后的中文标题字符串。"
+                ),
+            },
+            {"role": "user", "content": json.dumps(titles, ensure_ascii=False)},
+        ],
+    }
+    try:
+        response = requests.post(
+            f"{settings.translation_base_url.rstrip('/')}/chat/completions",
+            headers={
+                "Authorization": f"Bearer {settings.translation_api_key}",
+                "Content-Type": "application/json",
+            },
+            json=payload,
+            timeout=60,
+        )
+        response.raise_for_status()
+        data = response.json()
+        choices = data.get("choices") or []
+        if not choices:
+            return [None] * len(titles)
+        message = choices[0].get("message") or {}
+        raw_content = message.get("content")
+        if isinstance(raw_content, list):
+            raw_content = "".join(
+                part.get("text", "") for part in raw_content if isinstance(part, dict)
+            )
+        extracted = _extract_json_array(raw_content or "")
+        if extracted is None or len(extracted) != len(titles):
+            return [translate_text(t, settings) for t in titles]
+        return [str(item).strip() or None for item in extracted]
+    except requests.RequestException:
+        return [None] * len(titles)
 
 
 def iter_titles_to_translate(
