@@ -277,7 +277,10 @@ def _batch_with_openai(titles: list[str], settings: Settings) -> list[str | None
             )
         extracted = _extract_json_array(raw_content or "")
         if extracted is None or len(extracted) != len(titles):
-            return [translate_text(t, settings) for t in titles]
+            # 不逐条回退：会把 1 个批量请求放大成 N 次单条请求，
+            # 打爆 Gemini 免费层配额（曾导致 429 持续数小时）。
+            # 整批留待下一轮 cron 重试。
+            return [None] * len(titles)
         return [str(item).strip() or None for item in extracted]
     except requests.RequestException:
         return [None] * len(titles)
@@ -314,30 +317,30 @@ def backfill_recent_translations(settings: Settings, hours: int, limit: int) -> 
     """
     params = [f"-{hours} hours", *HIDDEN_SOURCES]
 
-    translated_count = 0
-    translation_cache: dict[str, str | None] = {}
-
     with connection_scope(settings) as connection:
         rows = connection.execute(query, params).fetchall()
+        pending_ids: list[str] = []
+        pending_titles: list[str] = []
         for row in rows:
-            if translated_count >= limit:
+            if len(pending_titles) >= limit:
                 break
+            if should_translate_text(
+                text=row["title"],
+                language=row["language"],
+                existing_translation=row["title_zh"],
+            ):
+                pending_ids.append(row["id"])
+                pending_titles.append(row["title"])
 
-            title = row["title"]
+        if not pending_titles:
+            return 0
 
-            title_zh = _translate_with_cache(
-                translation_cache,
-                title,
-                settings,
-                should_translate_text(text=title, language=row["language"], existing_translation=row["title_zh"]),
-            )
-
+        # 批量翻译（1 次请求/批），主失败自动切换备用翻译
+        results = translate_titles_batch(pending_titles, settings)
+        translated_count = 0
+        for article_id, title_zh in zip(pending_ids, results):
             if title_zh:
-                update_article_translations(
-                    connection,
-                    row["id"],
-                    title_zh=title_zh,
-                )
+                update_article_translations(connection, article_id, title_zh=title_zh)
                 translated_count += 1
 
     return translated_count
