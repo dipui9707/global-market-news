@@ -251,6 +251,11 @@ def run_pipeline(settings: Settings) -> PipelineRunResult:
 
             stored_count += 1
 
+            # 定期提交，避免整个循环持有写锁超过 busy_timeout（30s），
+            # 导致并发的 backfill/页面按钮写库报 database is locked
+            if stored_count % 20 == 0:
+                connection.commit()
+
         # 循环结束后统一批量翻译，减少 API 请求次数
         if pending_translation_titles:
             batch_titles = [title for _, title in pending_translation_titles]

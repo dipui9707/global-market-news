@@ -4,6 +4,8 @@ from collections.abc import Iterable
 from dataclasses import replace
 import json
 import re
+import sqlite3
+import time
 
 import requests
 
@@ -59,6 +61,7 @@ def _fallback_settings(settings: Settings) -> Settings | None:
         translation_provider=(settings.fallback_provider or "deepl").lower(),
         translation_api_key=settings.fallback_api_key,
         translation_base_url=settings.fallback_base_url or settings.translation_base_url,
+        translation_model=settings.fallback_model or settings.translation_model,
         translation_target_lang=settings.fallback_target_lang or settings.translation_target_lang,
     )
 
@@ -163,27 +166,49 @@ def translate_title(title: str, settings: Settings) -> str | None:
     return translate_text(title, settings)
 
 
+def _batch_with_retry(
+    titles: list[str],
+    settings: Settings,
+    retries: int = 1,
+    backoff_seconds: float = 2.0,
+    timeout: float = 20.0,
+) -> list[str | None]:
+    """批量翻译，失败时重试（免费模型如硅基流动 Hunyuan-MT-7B 抖动常见）。"""
+    last: list[str | None] = [None] * len(titles)
+    for attempt in range(retries + 1):
+        if settings.translation_provider == "deepl":
+            last = _batch_with_deepl(titles, settings)
+        else:
+            last = _batch_with_openai(titles, settings, timeout=timeout)
+        if any(last):
+            return last
+        if attempt < retries:
+            time.sleep(backoff_seconds)
+    return last
+
+
 def translate_titles_batch(titles: list[str], settings: Settings) -> list[str | None]:
     """批量翻译多条标题，返回与输入等长的列表（失败项为 None）。
 
     - DeepL：原生批量（一次请求多条）
     - OpenAI 兼容：一次请求传入 JSON 数组，要求按序返回 JSON 数组；解析失败则回退逐条
+    - 主模型失败自动重试 1 次，再切换备用翻译（免费模型抖动时重试成功率很高）
+    - 备用模型（如 DeepSeek 推理模型）较慢，使用更长超时
     """
     if not translation_is_configured(settings) or not titles:
         return [None] * len(titles)
-    if settings.translation_provider == "deepl":
-        primary = _batch_with_deepl(titles, settings)
-    else:
-        primary = _batch_with_openai(titles, settings)
+
+    primary = _batch_with_retry(titles, settings, timeout=20.0)
     if any(primary):
         return primary
+
     # 主翻译整批失败 → 备用翻译
     fallback = _fallback_settings(settings)
     if fallback is None:
         return primary
     if fallback.translation_provider == "deepl":
         return _batch_with_deepl(titles, fallback)
-    return _batch_with_openai(titles, fallback)
+    return _batch_with_retry(titles, fallback, timeout=45.0)
 
 
 def _batch_with_deepl(titles: list[str], settings: Settings) -> list[str | None]:
@@ -231,7 +256,7 @@ def _extract_json_array(content: str) -> list[str] | None:
     return None
 
 
-def _batch_with_openai(titles: list[str], settings: Settings) -> list[str | None]:
+def _batch_with_openai(titles: list[str], settings: Settings, timeout: float = 20.0) -> list[str | None]:
     # 特化的 qwen-mt 翻译接口不支持本批量协议，回退逐条
     if settings.translation_model.startswith("qwen-mt-"):
         return [translate_text(t, settings) for t in titles]
@@ -262,7 +287,7 @@ def _batch_with_openai(titles: list[str], settings: Settings) -> list[str | None
                 "Content-Type": "application/json",
             },
             json=payload,
-            timeout=60,
+            timeout=timeout,
         )
         response.raise_for_status()
         data = response.json()
@@ -339,9 +364,19 @@ def backfill_recent_translations(settings: Settings, hours: int, limit: int) -> 
         results = translate_titles_batch(pending_titles, settings)
         translated_count = 0
         for article_id, title_zh in zip(pending_ids, results):
-            if title_zh:
-                update_article_translations(connection, article_id, title_zh=title_zh)
-                translated_count += 1
+            if not title_zh:
+                continue
+            # 写库可能与其他进程（cron pipeline / 页面按钮）并发冲突，
+            # 遇到 database is locked 时短暂重试
+            for attempt in range(4):
+                try:
+                    update_article_translations(connection, article_id, title_zh=title_zh)
+                    translated_count += 1
+                    break
+                except sqlite3.OperationalError:
+                    if attempt == 3:
+                        raise
+                    time.sleep(1.0 * (attempt + 1))
 
     return translated_count
 
