@@ -13,6 +13,44 @@ from news_mvp.config import Settings
 from news_mvp.db import connection_scope, update_article_translations
 
 
+def _translation_role(settings: Settings) -> str:
+    """判断当前 settings 是主翻译还是备用翻译配置。"""
+    fallback_model = settings.fallback_model
+    if fallback_model and settings.translation_model == fallback_model:
+        return "fallback"
+    return "primary"
+
+
+def _log_translation(
+    settings: Settings,
+    *,
+    provider: str,
+    model: str,
+    role: str,
+    batch_size: int,
+    ok_count: int,
+    total: int,
+    duration_ms: int,
+) -> None:
+    """把每次翻译请求写入 translation_log（供面板实时展示接口活动）。"""
+    try:
+        connection = sqlite3.connect(settings.database_path, timeout=5)
+        try:
+            connection.execute(
+                """
+                INSERT INTO translation_log
+                    (ts, provider, model, role, batch_size, ok_count, total, duration_ms)
+                VALUES (datetime('now'), ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (provider, model, role, batch_size, ok_count, total, duration_ms),
+            )
+            connection.commit()
+        finally:
+            connection.close()
+    except Exception:
+        pass  # 日志失败不影响翻译主流程
+
+
 HIDDEN_SOURCES = ("联合早报",)
 
 
@@ -95,26 +133,42 @@ def _translate_fallback_text(text: str, settings: Settings) -> str | None:
 
 
 def _translate_with_deepl(text: str, settings: Settings) -> str | None:
-    data: dict[str, str] = {
-        "text": text,
-        "target_lang": settings.translation_target_lang,
-    }
-    source_lang = settings.translation_source_lang
-    if source_lang and source_lang.lower() not in {"auto", ""}:
-        data["source_lang"] = source_lang
-    response = requests.post(
-        settings.translation_base_url,
-        headers={"Authorization": f"DeepL-Auth-Key {settings.translation_api_key}"},
-        data=data,
-        timeout=30,
-    )
-    response.raise_for_status()
-    payload = response.json()
-    translations = payload.get("translations") or []
-    if not translations:
-        return None
-    content = (translations[0].get("text") or "").strip()
-    return content or None
+    t0 = time.time()
+    result: str | None = None
+    try:
+        data: dict[str, str] = {
+            "text": text,
+            "target_lang": settings.translation_target_lang,
+        }
+        source_lang = settings.translation_source_lang
+        if source_lang and source_lang.lower() not in {"auto", ""}:
+            data["source_lang"] = source_lang
+        response = requests.post(
+            settings.translation_base_url,
+            headers={"Authorization": f"DeepL-Auth-Key {settings.translation_api_key}"},
+            data=data,
+            timeout=30,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        translations = payload.get("translations") or []
+        if translations:
+            content = (translations[0].get("text") or "").strip()
+            result = content or None
+    except requests.RequestException:
+        result = None
+    finally:
+        _log_translation(
+            settings,
+            provider=settings.translation_provider,
+            model=settings.translation_model,
+            role=_translation_role(settings),
+            batch_size=1,
+            ok_count=1 if result else 0,
+            total=1,
+            duration_ms=int((time.time() - t0) * 1000),
+        )
+    return result
 
 
 def _translate_with_openai_compatible(text: str, settings: Settings) -> str | None:
@@ -151,31 +205,47 @@ def _translate_with_openai_compatible(text: str, settings: Settings) -> str | No
             ],
         }
 
-    response = requests.post(
-        f"{settings.translation_base_url.rstrip('/')}/chat/completions",
-        headers={
-            "Authorization": f"Bearer {settings.translation_api_key}",
-            "Content-Type": "application/json",
-        },
-        json=payload,
-        timeout=20,
-    )
-    response.raise_for_status()
-    data = response.json()
-    choices = data.get("choices") or []
-    if not choices:
-        return None
-    message = choices[0].get("message") or {}
-    raw_content = message.get("content")
-    if isinstance(raw_content, list):
-        content = "".join(
-            part.get("text", "")
-            for part in raw_content
-            if isinstance(part, dict)
-        ).strip()
-    else:
-        content = (raw_content or "").strip()
-    return content or None
+    t0 = time.time()
+    result: str | None = None
+    try:
+        response = requests.post(
+            f"{settings.translation_base_url.rstrip('/')}/chat/completions",
+            headers={
+                "Authorization": f"Bearer {settings.translation_api_key}",
+                "Content-Type": "application/json",
+            },
+            json=payload,
+            timeout=20,
+        )
+        response.raise_for_status()
+        data = response.json()
+        choices = data.get("choices") or []
+        if choices:
+            message = choices[0].get("message") or {}
+            raw_content = message.get("content")
+            if isinstance(raw_content, list):
+                content = "".join(
+                    part.get("text", "")
+                    for part in raw_content
+                    if isinstance(part, dict)
+                ).strip()
+            else:
+                content = (raw_content or "").strip()
+            result = content or None
+    except requests.RequestException:
+        result = None
+    finally:
+        _log_translation(
+            settings,
+            provider=settings.translation_provider,
+            model=settings.translation_model,
+            role=_translation_role(settings),
+            batch_size=1,
+            ok_count=1 if result else 0,
+            total=1,
+            duration_ms=int((time.time() - t0) * 1000),
+        )
+    return result
 
 
 def translate_title(title: str, settings: Settings) -> str | None:
@@ -257,6 +327,8 @@ def _batch_with_deepl(titles: list[str], settings: Settings) -> list[str | None]
     source_lang = settings.translation_source_lang
     if source_lang and source_lang.lower() not in {"auto", ""}:
         data["source_lang"] = source_lang
+    t0 = time.time()
+    ok_count = 0
     try:
         response = requests.post(
             settings.translation_base_url,
@@ -268,9 +340,21 @@ def _batch_with_deepl(titles: list[str], settings: Settings) -> list[str | None]
         results: list[str | None] = []
         for item in (response.json().get("translations") or []):
             results.append((item.get("text") or "").strip() or None)
+        ok_count = sum(1 for x in results if x)
         return results
     except requests.RequestException:
         return [None] * len(titles)
+    finally:
+        _log_translation(
+            settings,
+            provider=settings.translation_provider,
+            model=settings.translation_model,
+            role=_translation_role(settings),
+            batch_size=len(titles),
+            ok_count=ok_count,
+            total=len(titles),
+            duration_ms=int((time.time() - t0) * 1000),
+        )
 
 
 def _extract_json_array(content: str) -> list[str] | None:
@@ -317,6 +401,8 @@ def _batch_with_openai(titles: list[str], settings: Settings, timeout: float = 4
             {"role": "user", "content": json.dumps(titles, ensure_ascii=False)},
         ],
     }
+    t0 = time.time()
+    ok_count = 0
     try:
         response = requests.post(
             f"{settings.translation_base_url.rstrip('/')}/chat/completions",
@@ -341,12 +427,25 @@ def _batch_with_openai(titles: list[str], settings: Settings, timeout: float = 4
         extracted = _extract_json_array(raw_content or "")
         if extracted is None or len(extracted) != len(titles):
             # 不逐条回退：会把 1 个批量请求放大成 N 次单条请求，
-            # 打爆 Gemini 免费层配额（曾导致 429 持续数小时）。
+            # 打爆免费层配额（曾导致 429 持续数小时）。
             # 整批留待下一轮 cron 重试。
             return [None] * len(titles)
-        return [str(item).strip() or None for item in extracted]
+        results = [str(item).strip() or None for item in extracted]
+        ok_count = sum(1 for x in results if x)
+        return results
     except requests.RequestException:
         return [None] * len(titles)
+    finally:
+        _log_translation(
+            settings,
+            provider=settings.translation_provider,
+            model=settings.translation_model,
+            role=_translation_role(settings),
+            batch_size=len(titles),
+            ok_count=ok_count,
+            total=len(titles),
+            duration_ms=int((time.time() - t0) * 1000),
+        )
 
 
 def iter_titles_to_translate(

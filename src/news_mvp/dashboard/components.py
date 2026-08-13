@@ -7,25 +7,93 @@ from zoneinfo import ZoneInfo
 import streamlit as st
 
 from news_mvp.collectors.base import sanitize_text
-from news_mvp.dashboard.queries import ArticleCard, SourceStatus, TopicPulse
+from news_mvp.config import Settings
+from news_mvp.dashboard.queries import (
+    ArticleCard,
+    SourceStatus,
+    TopicPulse,
+    load_translation_activity,
+    load_translation_daily_stats,
+)
 
 BJ_TZ = timezone(timedelta(hours=8))
 NY_TZ = ZoneInfo("America/New_York")
 LON_TZ = ZoneInfo("Europe/London")
 
 
-def render_header() -> None:
+def _short_model(model: str) -> str:
+    return model.rsplit("/", 1)[-1] or model
+
+
+def _utc_ts_to_bj_hhmm(ts: str) -> str:
+    try:
+        dt = datetime.fromisoformat(ts)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=UTC)
+        return dt.astimezone(BJ_TZ).strftime("%H:%M")
+    except ValueError:
+        return "--:--"
+
+
+def render_translation_activity(settings: Settings) -> None:
+    """feed 顶部翻译活动条：最近几次翻译请求走了哪个接口（主/备）。"""
+    try:
+        activity = load_translation_activity(settings, limit=6)
+        stats = load_translation_daily_stats(settings)
+    except Exception:
+        return
+
+    items: list[str] = []
+    for entry in activity:
+        role_cls = "ta-role-fallback" if entry.role == "fallback" else "ta-role-primary"
+        role_label = "备" if entry.role == "fallback" else "主"
+        ok = entry.total > 0 and entry.ok_count >= entry.total
+        res_cls = "ta-ok" if ok else "ta-fail"
+        res_txt = f"{entry.ok_count}/{entry.total}" if entry.total else "-"
+        ms = entry.duration_ms / 1000
+        dur = f"{ms:.1f}s" if ms >= 1 else f"{entry.duration_ms}ms"
+        items.append(
+            f"<span class='ta-item'>{_utc_ts_to_bj_hhmm(entry.ts)} "
+            f"<span class='{role_cls}'>{role_label}</span> "
+            f"{escape(_short_model(entry.model))} "
+            f"<span class='{res_cls}'>{res_txt}</span> {dur}</span>"
+        )
+
+    summary = ""
+    if stats.primary_requests or stats.fallback_requests:
+        summary = (
+            f"<span class='ta-summary'>今日：主 {stats.primary_ok} 条 / {stats.primary_requests} 次 · "
+            f"备 {stats.fallback_ok} 条 / {stats.fallback_requests} 次</span>"
+        )
+    if not items and not summary:
+        items.append("<span class='ta-item'>暂无翻译请求记录</span>")
+
+    html = (
+        "<div class='translation-activity'>"
+        "<span class='ta-title'>翻译活动</span>"
+        + "".join(items)
+        + summary
+        + "</div>"
+    )
+    st.markdown(html, unsafe_allow_html=True)
+
+
+def render_header(settings) -> None:
     now = datetime.now(UTC)
     bj = now.astimezone(BJ_TZ).strftime("%H:%M")
     ny = now.astimezone(NY_TZ).strftime("%H:%M")
     lon = now.astimezone(LON_TZ).strftime("%H:%M")
+    primary_model = settings.translation_model or "未配置"
+    fallback_model = settings.fallback_model or "无"
     html = f"""
     <div class="hero-bar">
         <div class="hero-left">
             <div class="brand-title">环球财经</div>
             <div class="brand-sub">Global Market News</div>
         </div>
-        <div class="market-clock">北京 {bj} &nbsp;&nbsp;•&nbsp;&nbsp; NY {ny} &nbsp;&nbsp;•&nbsp;&nbsp; LON {lon}</div>
+        <div class="market-clock">北京 {bj} &nbsp;&nbsp;•&nbsp;&nbsp; NY {ny} &nbsp;&nbsp;•&nbsp;&nbsp; LON {lon}
+        <span class="translation-config" title="当前翻译接口配置">🈪 {escape(primary_model)}<span class="translation-config-sep">主</span>{escape(fallback_model)}<span class="translation-config-sep">备</span></span>
+        </div>
     </div>
     """
     st.markdown(html, unsafe_allow_html=True)

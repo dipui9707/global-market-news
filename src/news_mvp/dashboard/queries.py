@@ -53,6 +53,78 @@ class TopicPulse:
     article_count: int
 
 
+@dataclass(slots=True)
+class TranslationActivity:
+    ts: str
+    provider: str
+    model: str
+    role: str
+    batch_size: int
+    ok_count: int
+    total: int
+    duration_ms: int
+
+
+@dataclass(slots=True)
+class TranslationDailyStats:
+    primary_requests: int
+    primary_ok: int
+    fallback_requests: int
+    fallback_ok: int
+    total_duration_ms: int
+
+
+def load_translation_activity(settings: Settings, limit: int = 8) -> list[TranslationActivity]:
+    """最近 N 条翻译请求活动。"""
+    with connection_scope(settings) as connection:
+        rows = connection.execute(
+            """
+            SELECT ts, provider, model, role, batch_size, ok_count, total, duration_ms
+            FROM translation_log
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+    return [
+        TranslationActivity(
+            ts=row["ts"],
+            provider=row["provider"] or "",
+            model=row["model"] or "",
+            role=row["role"] or "",
+            batch_size=row["batch_size"] or 0,
+            ok_count=row["ok_count"] or 0,
+            total=row["total"] or 0,
+            duration_ms=row["duration_ms"] or 0,
+        )
+        for row in rows
+    ]
+
+
+def load_translation_daily_stats(settings: Settings) -> TranslationDailyStats:
+    """今日（UTC）主/备用翻译请求统计。"""
+    with connection_scope(settings) as connection:
+        rows = connection.execute(
+            """
+            SELECT
+                COALESCE(SUM(CASE WHEN role = 'primary' THEN 1 ELSE 0 END), 0) AS primary_requests,
+                COALESCE(SUM(CASE WHEN role = 'primary' THEN ok_count ELSE 0 END), 0) AS primary_ok,
+                COALESCE(SUM(CASE WHEN role = 'fallback' THEN 1 ELSE 0 END), 0) AS fallback_requests,
+                COALESCE(SUM(CASE WHEN role = 'fallback' THEN ok_count ELSE 0 END), 0) AS fallback_ok,
+                COALESCE(SUM(duration_ms), 0) AS total_duration_ms
+            FROM translation_log
+            WHERE ts >= date('now')
+            """
+        ).fetchone()
+    return TranslationDailyStats(
+        primary_requests=int(rows["primary_requests"]),
+        primary_ok=int(rows["primary_ok"]),
+        fallback_requests=int(rows["fallback_requests"]),
+        fallback_ok=int(rows["fallback_ok"]),
+        total_duration_ms=int(rows["total_duration_ms"]),
+    )
+
+
 def _hidden_source_placeholders() -> str:
     return ", ".join("?" for _ in HIDDEN_SOURCES)
 

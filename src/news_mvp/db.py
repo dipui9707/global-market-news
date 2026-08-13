@@ -43,6 +43,7 @@ def initialize_database(settings: Settings, *, normalize_event_map: bool = True)
             cursor.execute(statement)
         _ensure_article_schema(connection)
         _ensure_event_schema(connection)
+        _ensure_translation_log_schema(connection)
         if normalize_event_map:
             _normalize_article_event_map(connection)
         for statement in SCHEMA_STATEMENTS[5:]:
@@ -340,6 +341,28 @@ def _ensure_event_schema(connection: sqlite3.Connection) -> None:
     }
     if "event_title_zh" not in existing_columns:
         connection.execute("ALTER TABLE events ADD COLUMN event_title_zh TEXT")
+
+
+def _ensure_translation_log_schema(connection: sqlite3.Connection) -> None:
+    """翻译请求日志表（面板实时展示翻译接口活动）。"""
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS translation_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ts TEXT NOT NULL DEFAULT (datetime('now')),
+            provider TEXT,
+            model TEXT,
+            role TEXT,
+            batch_size INTEGER,
+            ok_count INTEGER,
+            total INTEGER,
+            duration_ms INTEGER
+        )
+        """
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_translation_log_ts ON translation_log (ts)"
+    )
 
 
 def _normalize_article_event_map(connection: sqlite3.Connection) -> None:

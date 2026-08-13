@@ -10,6 +10,7 @@ from news_mvp.dashboard.components import (
     render_stat_panel,
     render_source_status_panel,
     render_topic_panel,
+    render_translation_activity,
 )
 from news_mvp.dashboard.queries import (
     load_article_feed,
@@ -49,6 +50,7 @@ def _render_feed_section(
         int(st.session_state.get("feed_visible_count", max(settings.default_page_size, INITIAL_FEED_PAGE_SIZE))),
         settings.article_retention_count,
     )
+    render_translation_activity(settings)
     articles = load_article_feed(
         settings,
         hours=hours,
@@ -130,7 +132,7 @@ def _sync_feed_pagination(
 
 def render_dashboard(settings: Settings) -> None:
     st.markdown(get_dashboard_css(), unsafe_allow_html=True)
-    render_header()
+    render_header(settings)
 
     stats = load_dashboard_stats(settings)
     filter_options = load_filter_options(settings)

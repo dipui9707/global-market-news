@@ -122,6 +122,69 @@ def get_dashboard_css() -> str:
         font-weight: 500;
     }
 
+    /* ── 翻译接口配置徽章（顶栏） ───────────── */
+    .translation-config {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 0.62rem;
+        letter-spacing: 0.02em;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 999px;
+        padding: 0.16rem 0.55rem;
+        margin-left: 0.8rem;
+        vertical-align: middle;
+    }
+    .translation-config-sep {
+        color: var(--gold-bright);
+        margin: 0 0.3rem;
+        font-size: 0.58rem;
+    }
+
+    /* ── 翻译活动条（feed 顶部，fragment 自动刷新） ── */
+    .translation-activity {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.35rem 0.6rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 0.5rem;
+        padding: 0.45rem 0.7rem;
+        margin-bottom: 0.7rem;
+        font-size: 0.72rem;
+        color: var(--muted);
+    }
+    .ta-title {
+        color: var(--gold-bright);
+        letter-spacing: 0.12em;
+        font-weight: 600;
+        margin-right: 0.2rem;
+    }
+    .ta-item {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 0.68rem;
+        color: var(--text);
+        white-space: nowrap;
+    }
+    .ta-role-primary {
+        color: #4cc9f0;
+    }
+    .ta-role-fallback {
+        color: #f8961e;
+    }
+    .ta-ok {
+        color: #74c69d;
+    }
+    .ta-fail {
+        color: #e56b6f;
+    }
+    .ta-summary {
+        color: var(--faint);
+        margin-left: auto;
+        font-size: 0.68rem;
+    }
+
     /* ── 筛选与控制 ────────────────────────────── */
     .inline-kicker {
         color: var(--faint);
