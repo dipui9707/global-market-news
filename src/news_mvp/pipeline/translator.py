@@ -41,6 +41,9 @@ def should_translate_title(*, title: str, language: str | None, existing_transla
 # 可达 900+ 字符，整条翻译输出极长，会拖慢/超时整批请求导致整批失败
 MAX_TITLE_TRANSLATE_CHARS = 300
 
+# 超过该长度的"标题"不进入批量（逐条单独翻译），避免拉长整批输出导致整批超时
+LONG_TITLE_THRESHOLD = 150
+
 
 def _truncate_title(text: str) -> str:
     text = (text or "").strip()
@@ -155,7 +158,7 @@ def _translate_with_openai_compatible(text: str, settings: Settings) -> str | No
             "Content-Type": "application/json",
         },
         json=payload,
-        timeout=30,
+        timeout=20,
     )
     response.raise_for_status()
     data = response.json()
@@ -200,20 +203,10 @@ def _batch_with_retry(
     return last
 
 
-def translate_titles_batch(titles: list[str], settings: Settings) -> list[str | None]:
-    """批量翻译多条标题，返回与输入等长的列表（失败项为 None）。
-
-    - DeepL：原生批量（一次请求多条）
-    - OpenAI 兼容：一次请求传入 JSON 数组，要求按序返回 JSON 数组；解析失败则回退逐条
-    - 主模型失败自动重试 1 次，再切换备用翻译（免费模型抖动时重试成功率很高）
-    - 备用模型（如 DeepSeek 推理模型）较慢，使用更长超时
-    """
-    if not translation_is_configured(settings) or not titles:
-        return [None] * len(titles)
-
-    # 截断超长“标题”（整篇摘要），避免输出极长拖慢整批请求导致超时
-    titles = [_truncate_title(t) for t in titles]
-
+def _batch_translate_with_fallback(
+    titles: list[str], settings: Settings
+) -> list[str | None]:
+    """批量翻译（主失败重试 → 备用），整批失败时返回全 None。"""
     primary = _batch_with_retry(titles, settings, timeout=15.0)
     if any(primary):
         return primary
@@ -225,6 +218,35 @@ def translate_titles_batch(titles: list[str], settings: Settings) -> list[str | 
     if fallback.translation_provider == "deepl":
         return _batch_with_deepl(titles, fallback)
     return _batch_with_retry(titles, fallback, timeout=30.0)
+
+
+def translate_titles_batch(titles: list[str], settings: Settings) -> list[str | None]:
+    """批量翻译多条标题，返回与输入等长的列表（失败项为 None）。
+
+    - 短标题（≤150 字）批量翻译（1 次请求/批，主失败重试后切备用）
+    - 长标题（>150 字）逐条翻译：这些"标题"实际是整篇摘要（可达 900+ 字），
+      混在批里会把整批输出拉长到超时，导致整批失败；逐条走单条路径更稳
+    - 失败项留待下一轮 cron 重试
+    """
+    if not translation_is_configured(settings) or not titles:
+        return [None] * len(titles)
+
+    long_indices = [i for i, t in enumerate(titles) if len(t or "") > LONG_TITLE_THRESHOLD]
+    short_indices = [i for i, t in enumerate(titles) if len(t or "") <= LONG_TITLE_THRESHOLD]
+    results: list[str | None] = [None] * len(titles)
+
+    if short_indices:
+        short_titles = [_truncate_title(titles[i]) for i in short_indices]
+        short_results = _batch_translate_with_fallback(short_titles, settings)
+        # 整批失败（服务抖动）时不做逐条回退：抖动期逐条会卡死整轮
+        # （10 条 × 20s×2 主备超时），且已无配额压力，留 None 下一轮重试
+        for idx, res in zip(short_indices, short_results):
+            results[idx] = res
+
+    for idx in long_indices:
+        results[idx] = translate_text(titles[idx], settings)
+
+    return results
 
 
 def _batch_with_deepl(titles: list[str], settings: Settings) -> list[str | None]:
