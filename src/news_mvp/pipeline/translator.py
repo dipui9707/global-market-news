@@ -37,9 +37,22 @@ def should_translate_title(*, title: str, language: str | None, existing_transla
     return should_translate_text(text=title, language=language, existing_translation=existing_translation)
 
 
+# 标题翻译时截断到该长度：部分源（如 MktNews 综合快讯）的"标题"实际是全文摘要，
+# 可达 900+ 字符，整条翻译输出极长，会拖慢/超时整批请求导致整批失败
+MAX_TITLE_TRANSLATE_CHARS = 300
+
+
+def _truncate_title(text: str) -> str:
+    text = (text or "").strip()
+    if len(text) <= MAX_TITLE_TRANSLATE_CHARS:
+        return text
+    return text[:MAX_TITLE_TRANSLATE_CHARS].rstrip() + "…"
+
+
 def translate_text(text: str, settings: Settings) -> str | None:
     if not translation_is_configured(settings):
         return None
+    text = _truncate_title(text)
     try:
         if settings.translation_provider == "deepl":
             result = _translate_with_deepl(text, settings)
@@ -198,7 +211,10 @@ def translate_titles_batch(titles: list[str], settings: Settings) -> list[str | 
     if not translation_is_configured(settings) or not titles:
         return [None] * len(titles)
 
-    primary = _batch_with_retry(titles, settings, timeout=20.0)
+    # 截断超长“标题”（整篇摘要），避免输出极长拖慢整批请求导致超时
+    titles = [_truncate_title(t) for t in titles]
+
+    primary = _batch_with_retry(titles, settings, timeout=15.0)
     if any(primary):
         return primary
 
@@ -208,7 +224,7 @@ def translate_titles_batch(titles: list[str], settings: Settings) -> list[str | 
         return primary
     if fallback.translation_provider == "deepl":
         return _batch_with_deepl(titles, fallback)
-    return _batch_with_retry(titles, fallback, timeout=45.0)
+    return _batch_with_retry(titles, fallback, timeout=30.0)
 
 
 def _batch_with_deepl(titles: list[str], settings: Settings) -> list[str | None]:
@@ -256,7 +272,7 @@ def _extract_json_array(content: str) -> list[str] | None:
     return None
 
 
-def _batch_with_openai(titles: list[str], settings: Settings, timeout: float = 20.0) -> list[str | None]:
+def _batch_with_openai(titles: list[str], settings: Settings, timeout: float = 45.0) -> list[str | None]:
     # 特化的 qwen-mt 翻译接口不支持本批量协议，回退逐条
     if settings.translation_model.startswith("qwen-mt-"):
         return [translate_text(t, settings) for t in titles]
