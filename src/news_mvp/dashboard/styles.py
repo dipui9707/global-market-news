@@ -122,25 +122,6 @@ def get_dashboard_css() -> str:
         font-weight: 500;
     }
 
-    /* ── 翻译接口配置徽章（顶栏） ───────────── */
-    .translation-config {
-        font-family: ui-monospace, "SF Mono", Menlo, monospace;
-        font-size: 0.62rem;
-        letter-spacing: 0.02em;
-        color: var(--text);
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.09);
-        border-radius: 999px;
-        padding: 0.16rem 0.55rem;
-        margin-left: 0.8rem;
-        vertical-align: middle;
-    }
-    .translation-config-sep {
-        color: var(--gold-bright);
-        margin: 0 0.3rem;
-        font-size: 0.58rem;
-    }
-
     /* ── 翻译活动条（feed 顶部，fragment 自动刷新） ── */
     .translation-activity {
         display: flex;

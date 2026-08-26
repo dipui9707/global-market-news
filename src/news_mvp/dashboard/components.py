@@ -83,17 +83,13 @@ def render_header(settings) -> None:
     bj = now.astimezone(BJ_TZ).strftime("%H:%M")
     ny = now.astimezone(NY_TZ).strftime("%H:%M")
     lon = now.astimezone(LON_TZ).strftime("%H:%M")
-    primary_model = settings.translation_model or "未配置"
-    fallback_model = settings.fallback_model or "无"
     html = f"""
     <div class="hero-bar">
         <div class="hero-left">
             <div class="brand-title">环球财经</div>
             <div class="brand-sub">Global Market News</div>
         </div>
-        <div class="market-clock">北京 {bj} &nbsp;&nbsp;•&nbsp;&nbsp; NY {ny} &nbsp;&nbsp;•&nbsp;&nbsp; LON {lon}
-        <span class="translation-config" title="当前翻译接口配置">🈪 {escape(primary_model)}<span class="translation-config-sep">主</span>{escape(fallback_model)}<span class="translation-config-sep">备</span></span>
-        </div>
+        <div class="market-clock">北京 {bj} &nbsp;&nbsp;•&nbsp;&nbsp; NY {ny} &nbsp;&nbsp;•&nbsp;&nbsp; LON {lon}</div>
     </div>
     """
     st.markdown(html, unsafe_allow_html=True)
