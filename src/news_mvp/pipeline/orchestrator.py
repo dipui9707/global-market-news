@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 from news_mvp.collectors import (
+    AIHOTCollector,
     AxiosCollector,
     BLSCollector,
     BloombergCollector,
@@ -65,6 +66,7 @@ class PipelineRunResult:
 
 def get_collectors() -> list[object]:
     return [
+        AIHOTCollector(),
         ReutersCollector(),
         BloombergCollector(),
         CNBCCollector(),

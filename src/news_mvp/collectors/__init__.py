@@ -2,6 +2,7 @@ from news_mvp.collectors.base import ArticlePayload, BaseCollector
 from news_mvp.collectors.bls import BLSCollector
 from news_mvp.collectors.federal_reserve import FederalReserveCollector
 from news_mvp.collectors.media_rss import (
+    AIHOTCollector,
     AxiosCollector,
     BloombergCollector,
     CNBCCollector,
@@ -26,6 +27,7 @@ from news_mvp.collectors.reuters import ReutersCollector
 __all__ = [
     "ArticlePayload",
     "BaseCollector",
+    "AIHOTCollector",
     "ReutersCollector",
     "FederalReserveCollector",
     "BLSCollector",

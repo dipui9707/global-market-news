@@ -200,3 +200,12 @@ class CoinDeskCollector(MultiFeedRSSCollector):
     source_name = "CoinDesk"
     feed_urls = ("https://www.coindesk.com/arc/outboundfeeds/rss/",)
     region = "Global"
+
+
+class AIHOTCollector(MultiFeedRSSCollector):
+    """AIHOT AI 动态聚合（中文源，无需翻译）。"""
+    name = "aihot"
+    source_name = "AIHOT"
+    feed_urls = ("https://aihot.virxact.com/feed/all.xml?aihot_actor=9c9a2cca-b880-4ff2-aecc-03741c3b60cc",)
+    region = "China"
+    language = "zh"
