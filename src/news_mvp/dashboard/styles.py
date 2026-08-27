@@ -38,19 +38,11 @@ def get_dashboard_css() -> str:
     }
 
     .block-container {
-        padding-top: 0.9rem;
+        padding-top: 132px;
+        padding-left: 0;
+        padding-right: 0;
         padding-bottom: 1.2rem;
         max-width: 1400px;
-    }
-
-    /* ── Hero 顶栏粘性定位：让中间层 display:contents，
-         使 sticky 包含块提升到 block-container，宽度与内容一致 ── */
-    [data-testid="stMarkdownContainer"]:has(.hero-bar),
-    [data-testid="stMarkdownContainer"]:has(.hero-bar) > div,
-    [data-testid="stMarkdownContainer"]:has(.hero-bar) > div > div,
-    [data-testid="stMarkdownContainer"]:has(.hero-bar) > div > div > div,
-    [data-testid="stMarkdownContainer"]:has(.hero-bar) > div > div > div > div {
-        display: contents;
     }
 
     /* ── Hero 固定顶栏（fixed，不随滚动） ──────── */
@@ -72,8 +64,12 @@ def get_dashboard_css() -> str:
         box-shadow:
             0 24px 48px rgba(0, 0, 0, 0.42),
             inset 0 1px 0 rgba(255, 255, 255, 0.045);
-        position: sticky;
+        position: fixed;
         top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 1400px;
         z-index: 999;
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
@@ -576,7 +572,7 @@ def get_dashboard_css() -> str:
     /* ── 响应式 ─────────────────────────────────── */
     @media (max-width: 900px) {
         .block-container {
-            padding-top: 0.6rem;
+            padding-top: 148px;
             padding-left: 0.85rem;
             padding-right: 0.85rem;
         }
