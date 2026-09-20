@@ -7,7 +7,7 @@ from typing import Any
 from news_mvp.config import Settings
 from news_mvp.db import connection_scope, fetch_scalar
 
-HIDDEN_SOURCES = ("联合早报", "SCMP")
+HIDDEN_SOURCES = ("联合早报", "SCMP", "MarketWatch")
 
 
 @dataclass(slots=True)
