@@ -51,7 +51,7 @@ def _log_translation(
         pass  # 日志失败不影响翻译主流程
 
 
-HIDDEN_SOURCES = ("联合早报", "MarketWatch")
+HIDDEN_SOURCES = ("联合早报", "MarketWatch", "The Western Producer", "CNBC", "FreightWaves")
 
 
 def translation_is_configured(settings: Settings) -> bool:
