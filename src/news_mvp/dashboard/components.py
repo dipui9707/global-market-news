@@ -86,8 +86,8 @@ def render_header(settings) -> None:
     html = f"""
     <div class="hero-bar">
         <div class="hero-left">
-            <div class="brand-title">环球财经</div>
-            <div class="brand-sub">Global Market News</div>
+            <div class="brand-title">环球财经AI资讯</div>
+            <div class="brand-sub">Global Market AI News</div>
         </div>
         <div class="market-clock">北京 {bj} &nbsp;&nbsp;•&nbsp;&nbsp; NY {ny} &nbsp;&nbsp;•&nbsp;&nbsp; LON {lon}</div>
     </div>

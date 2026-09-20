@@ -17,7 +17,7 @@ def main() -> None:
     settings = get_settings()
     _initialize_app((settings.app_env, settings.database_url))
     st.set_page_config(
-        page_title="Financial Intelligence Feedboard",
+        page_title="环球财经AI资讯",
         page_icon=":newspaper:",
         layout="wide",
     )
