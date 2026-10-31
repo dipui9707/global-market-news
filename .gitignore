@@ -14,5 +14,5 @@ yuan.py
 
 线上运维.txt
 
-.env.bak-*
+.env.bak*
 .venv/

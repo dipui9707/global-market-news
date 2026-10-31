@@ -39,6 +39,7 @@ class Settings:
     fallback_provider: str | None
     fallback_api_key: str | None
     fallback_base_url: str | None
+    fallback_model: str | None
     fallback_target_lang: str | None
 
     @property
@@ -81,5 +82,6 @@ def get_settings() -> Settings:
         fallback_provider=os.getenv("TRANSLATION_FALLBACK_PROVIDER") or None,
         fallback_api_key=os.getenv("TRANSLATION_FALLBACK_API_KEY") or None,
         fallback_base_url=os.getenv("TRANSLATION_FALLBACK_BASE_URL") or None,
+        fallback_model=os.getenv("TRANSLATION_FALLBACK_MODEL") or None,
         fallback_target_lang=os.getenv("TRANSLATION_FALLBACK_TARGET_LANG") or None,
     )
